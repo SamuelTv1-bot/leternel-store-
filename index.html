@@ -1,0 +1,2472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>L'ÉTERNEL Store | Quiet Luxury</title>
+
+    <meta name="description"
+          content="Luxury fashion inspired by timeless elegance.">
+
+    <meta name="keywords"
+          content="Luxury,Fashion,Minimalist,Ecommerce,Designer">
+
+    <meta name="theme-color"
+          content="#111111">
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@500;600;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="styles.css">
+
+</head>
+
+<body>
+
+<!-- ===========================
+GLOBAL PAGE LOADER
+============================ -->
+
+<div id="page-loader">
+
+    <div class="loader-logo">
+
+        <h1>L'ÉTERNEL</h1>
+
+        <span>Luxury Redefined</span>
+
+    </div>
+
+</div>
+
+<!-- ===========================
+TOAST NOTIFICATIONS
+============================ -->
+
+<div id="toast-container"></div>
+
+<!-- ===========================
+SCROLL PROGRESS
+============================ -->
+
+<div id="scroll-progress"></div>
+
+<!-- ===========================
+APP WRAPPER
+============================ -->
+
+<div id="app-wrapper">
+
+<!-- ===========================
+NAVIGATION
+============================ -->
+
+<header class="navbar"
+        id="navbar">
+
+<div class="nav-container">
+
+<div class="nav-left">
+
+<button id="hamburger"
+        class="hamburger">
+
+<i class="fas fa-bars"></i>
+
+</button>
+
+<nav>
+
+<ul id="nav-links">
+
+<li>
+
+<a href="#"
+   class="nav-link active"
+   data-target="home-page">
+
+Home
+
+</a>
+
+</li>
+
+<li>
+
+<a href="#"
+   class="nav-link"
+   data-target="shop-page">
+
+Collections
+
+</a>
+
+</li>
+
+<li>
+
+<a href="#"
+   class="nav-link"
+   data-target="heritage-page">
+
+Heritage
+
+</a>
+
+</li>
+
+<li>
+
+<a href="#"
+   class="nav-link"
+   data-target="contact-page">
+
+Contact
+
+</a>
+
+</li>
+
+</ul>
+
+</nav>
+
+</div>
+
+<div class="logo">
+
+<a href="#"
+   data-target="home-page">
+
+L'ÉTERNEL
+
+</a>
+
+</div>
+
+<div class="nav-right">
+
+<div class="search-box">
+
+<i class="fas fa-search"></i>
+
+<input
+
+id="search-input"
+
+type="text"
+
+placeholder="Search products..."
+
+autocomplete="off">
+
+</div>
+
+<button
+id="wishlistBtn"
+class="nav-icon">
+
+<i class="far fa-heart"></i>
+
+<span id="wishlist-count">
+
+0
+
+</span>
+
+</button>
+
+<button
+id="openProfile"
+class="nav-icon">
+
+<i class="far fa-user"></i>
+
+</button>
+
+<button
+id="openCart"
+class="nav-icon cart-btn">
+
+<i class="fas fa-shopping-bag"></i>
+
+<span
+id="cart-badge">
+
+0
+
+</span>
+
+</button>
+
+</div>
+
+</div>
+
+</header>
+
+<!-- ===========================
+MOBILE MENU
+============================ -->
+
+<div id="mobile-menu"
+     class="mobile-menu">
+
+<a href="#"
+   data-target="home-page">
+
+Home
+
+</a>
+
+<a href="#"
+   data-target="shop-page">
+
+Collections
+
+</a>
+
+<a href="#"
+   data-target="heritage-page">
+
+Heritage
+
+</a>
+
+<a href="#"
+   data-target="contact-page">
+
+Contact
+
+</a>
+
+</div>
+
+<!-- ===========================
+SPA MAIN
+============================ -->
+
+<main id="spa-container">
+
+<!-- ===========================================
+HOME PAGE STARTS HERE
+=========================================== -->
+
+<section
+
+id="home-page"
+
+class="view-section active-view">
+
+<!-- ==========================================
+HERO SECTION
+========================================== -->
+
+<section class="hero">
+
+    <div class="hero-background">
+        <img
+            src="https://images.unsplash.com/photo-1496747611176-843222e1e57f?q=80&w=2000&auto=format&fit=crop"
+            alt="Luxury Fashion">
+    </div>
+
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+
+        <span class="hero-subtitle">
+            Autumn • Winter Collection
+        </span>
+
+        <h1>
+            Timeless Pieces.<br>
+            Crafted for Eternity.
+        </h1>
+
+        <p>
+
+            Quiet luxury designed for modern elegance.
+            Premium fabrics.
+            Exceptional craftsmanship.
+            Enduring style.
+
+        </p>
+
+        <div class="hero-buttons">
+
+            <button
+                class="primary-btn"
+                data-target="shop-page">
+
+                Shop Collection
+
+            </button>
+
+            <button
+                class="secondary-btn"
+                data-target="heritage-page">
+
+                Discover Our Story
+
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ==========================================
+FEATURED COLLECTIONS
+========================================== -->
+
+<section class="collections-preview">
+
+    <div class="section-heading">
+
+        <span>Collections</span>
+
+        <h2>
+            Designed Around Simplicity
+        </h2>
+
+    </div>
+
+    <div class="collection-grid">
+
+        <article
+            class="collection-card"
+            data-filter="menswear">
+
+            <img
+                src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200"
+                alt="Menswear">
+
+            <div class="collection-overlay">
+
+                <h3>Menswear</h3>
+
+                <button
+                    data-target="shop-page"
+                    data-filter="menswear">
+
+                    Explore
+
+                </button>
+
+            </div>
+
+        </article>
+
+        <article
+            class="collection-card large"
+            data-filter="womenswear">
+
+            <img
+                src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1200"
+                alt="Womenswear">
+
+            <div class="collection-overlay">
+
+                <h3>Womenswear</h3>
+
+                <button
+                    data-target="shop-page"
+                    data-filter="womenswear">
+
+                    Explore
+
+                </button>
+
+            </div>
+
+        </article>
+
+        <article
+            class="collection-card"
+            data-filter="accessories">
+
+            <img
+                src="https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=1200"
+                alt="Accessories">
+
+            <div class="collection-overlay">
+
+                <h3>Accessories</h3>
+
+                <button
+                    data-target="shop-page"
+                    data-filter="accessories">
+
+                    Explore
+
+                </button>
+
+            </div>
+
+        </article>
+
+    </div>
+
+</section>
+
+<!-- ==========================================
+BRAND PHILOSOPHY
+========================================== -->
+
+<section class="brand-story">
+
+    <div class="brand-story-inner">
+
+        <div class="story-text">
+
+            <span>
+                OUR PHILOSOPHY
+            </span>
+
+            <h2>
+
+                Luxury isn't loud.
+
+            </h2>
+
+            <p>
+
+                At L'ÉTERNEL, we believe elegance comes from restraint.
+                Every garment is designed to outlive trends,
+                blending timeless silhouettes with exceptional fabrics.
+
+            </p>
+
+        </div>
+
+        <div class="story-image">
+
+            <img
+                src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=1500"
+                alt="Luxury Atelier">
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ==========================================
+FEATURED PRODUCTS
+========================================== -->
+
+<section class="featured-products">
+
+    <div class="section-heading">
+
+        <span>Editor's Picks</span>
+
+        <h2>
+
+            Featured Products
+
+        </h2>
+
+    </div>
+
+    <!-- Firebase loads products here -->
+
+    <div
+        id="featured-products-grid"
+        class="product-grid">
+
+    </div>
+
+</section>
+
+<!-- ==========================================
+EDITORIAL
+========================================== -->
+
+<section class="editorial-banner">
+
+    <div class="editorial-content">
+
+        <span>
+
+            Editorial
+
+        </span>
+
+        <h2>
+
+            Less Noise.
+            More Meaning.
+
+        </h2>
+
+        <p>
+
+            Designed for those who appreciate exceptional craftsmanship
+            rather than excessive branding.
+
+        </p>
+
+    </div>
+
+</section>
+
+<!-- ==========================================
+NEWSLETTER
+========================================== -->
+
+<section class="newsletter">
+
+    <div class="newsletter-container">
+
+        <h2>
+
+            Join L'ÉTERNEL
+
+        </h2>
+
+        <p>
+
+            Receive exclusive launches,
+            private offers,
+            and editorial stories.
+
+        </p>
+
+        <form id="newsletter-form">
+
+            <input
+
+                type="email"
+
+                id="newsletter-email"
+
+                placeholder="Email Address"
+
+                required>
+
+            <button>
+
+                Subscribe
+
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+<!-- ==========================================
+INSTAGRAM
+========================================== -->
+
+<section class="instagram-feed">
+
+    <div class="section-heading">
+
+        <span>@leternelstore</span>
+
+        <h2>
+
+            Journal
+
+        </h2>
+
+    </div>
+
+    <div class="instagram-grid">
+
+        <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=500"
+             alt="Gallery">
+
+        <img src="https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=500"
+             alt="Gallery">
+
+        <img src="https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?w=500"
+             alt="Gallery">
+
+        <img src="https://images.unsplash.com/photo-1495121605193-b116b5b09a7e?w=500"
+             alt="Gallery">
+
+    </div>
+
+</section>
+
+<!-- ==========================================
+CONTACT
+========================================== -->
+
+<section
+id="contact-page"
+class="contact-section">
+
+<div class="section-heading">
+
+<h2>
+
+Contact Us
+
+</h2>
+
+<p>
+
+Luxury assistance,
+whenever you need it.
+
+</p>
+
+</div>
+
+<div class="contact-grid">
+
+<div>
+
+<h3>
+
+Customer Care
+
+</h3>
+
+<p>
+
+Monday–Friday
+
+9:00 AM – 6:00 PM
+
+</p>
+
+<p>
+
+support@leternelstore.com
+
+</p>
+
+<p>
+
++1 (555) 555-5555
+
+</p>
+
+</div>
+
+<div>
+
+<h3>
+
+Follow Us
+
+</h3>
+
+<a href="#">
+
+Instagram
+
+</a>
+
+<a href="#">
+
+Facebook
+
+</a>
+
+<a href="#">
+
+Pinterest
+
+</a>
+
+</div>
+
+</div>
+
+</section>
+
+</section>
+
+<!-- =====================================================
+SHOP PAGE
+====================================================== -->
+
+<section
+    id="shop-page"
+    class="view-section">
+
+    <header class="page-header">
+
+        <span>Collection</span>
+
+        <h2>
+            Discover Every Piece
+        </h2>
+
+        <p>
+            Carefully curated garments crafted with premium materials.
+        </p>
+
+    </header>
+
+    <!-- FILTER BAR -->
+
+    <div class="shop-toolbar">
+
+        <div class="toolbar-left">
+
+            <select id="filter-category">
+
+                <option value="all">All Categories</option>
+                <option value="menswear">Menswear</option>
+                <option value="womenswear">Womenswear</option>
+                <option value="accessories">Accessories</option>
+
+            </select>
+
+            <select id="filter-price">
+
+                <option value="all">All Prices</option>
+                <option value="0-100">$0 — $100</option>
+                <option value="100-250">$100 — $250</option>
+                <option value="250-500">$250 — $500</option>
+                <option value="500">$500+</option>
+
+            </select>
+
+        </div>
+
+        <div class="toolbar-right">
+
+            <select id="sort-products">
+
+                <option value="latest">Newest</option>
+                <option value="price-low">Price: Low → High</option>
+                <option value="price-high">Price: High → Low</option>
+                <option value="popular">Most Popular</option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+    <!-- ACTIVE FILTERS -->
+
+    <div id="active-filters"
+         class="active-filters">
+
+    </div>
+
+    <!-- LOADING PLACEHOLDERS -->
+
+    <div
+        id="products-loading"
+        class="product-grid loading-grid">
+
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+
+    </div>
+
+    <!-- PRODUCT GRID (Firebase) -->
+
+    <div
+        id="main-product-grid"
+        class="product-grid">
+
+    </div>
+
+    <!-- EMPTY STATE -->
+
+    <div
+        id="empty-products"
+        class="empty-state">
+
+        <i class="fas fa-box-open"></i>
+
+        <h3>
+
+            No Products Found
+
+        </h3>
+
+        <p>
+
+            Try changing your filters.
+
+        </p>
+
+    </div>
+
+    <!-- PAGINATION -->
+
+    <div class="pagination">
+
+        <button id="prev-page">
+
+            Previous
+
+        </button>
+
+        <span id="page-number">
+
+            Page 1
+
+        </span>
+
+        <button id="next-page">
+
+            Next
+
+        </button>
+
+    </div>
+
+</section>
+
+<!-- =====================================================
+PRODUCT DETAILS PAGE
+====================================================== -->
+
+<section
+    id="product-page"
+    class="view-section">
+
+    <div class="product-details-container">
+
+        <!-- GALLERY -->
+
+        <div class="gallery-column">
+
+            <div id="thumbnail-list"
+                 class="thumbnail-list">
+
+            </div>
+
+            <div class="main-image-wrapper">
+
+                <img
+                    id="detail-main-image"
+                    src=""
+                    alt="Product Image">
+
+            </div>
+
+        </div>
+
+        <!-- PRODUCT INFORMATION -->
+
+        <div class="details-column">
+
+            <span
+                id="detail-category"
+                class="product-category">
+
+            </span>
+
+            <h1
+                id="detail-title">
+
+            </h1>
+
+            <div class="rating-row">
+
+                <div id="product-stars">
+
+                    ★★★★★
+
+                </div>
+
+                <span id="review-count">
+
+                    (0 Reviews)
+
+                </span>
+
+            </div>
+
+            <div
+                id="detail-price"
+                class="product-price">
+
+                $0
+
+            </div>
+
+            <p
+                id="detail-description">
+
+            </p>
+
+            <!-- SIZE -->
+
+            <div class="selector-group">
+
+                <label>
+
+                    Select Size
+
+                </label>
+
+                <div id="size-options"
+                     class="size-grid">
+
+                    <button>S</button>
+                    <button>M</button>
+                    <button>L</button>
+                    <button>XL</button>
+
+                </div>
+
+            </div>
+
+            <!-- COLOR -->
+
+            <div class="selector-group">
+
+                <label>
+
+                    Colour
+
+                </label>
+
+                <div id="colour-options"
+                     class="colour-grid">
+
+                </div>
+
+            </div>
+
+            <!-- QUANTITY -->
+
+            <div class="quantity-box">
+
+                <button id="qty-minus">
+
+                    −
+
+                </button>
+
+                <input
+                    id="product-qty"
+                    type="number"
+                    value="1"
+                    min="1">
+
+                <button id="qty-plus">
+
+                    +
+
+                </button>
+
+            </div>
+
+            <!-- ACTIONS -->
+
+            <div class="product-actions">
+
+                <button
+                    id="addToBagBtn"
+                    class="primary-btn">
+
+                    Add To Bag
+
+                </button>
+
+                <button
+                    id="buyNowBtn"
+                    class="secondary-btn">
+
+                    Buy Now
+
+                </button>
+
+                <button
+                    id="wishlistProductBtn"
+                    class="icon-button">
+
+                    <i class="far fa-heart"></i>
+
+                </button>
+
+            </div>
+
+            <!-- DELIVERY -->
+
+            <div class="product-meta">
+
+                <div>
+
+                    <i class="fas fa-truck"></i>
+
+                    Complimentary Worldwide Shipping
+
+                </div>
+
+                <div>
+
+                    <i class="fas fa-undo"></i>
+
+                    30-Day Returns
+
+                </div>
+
+                <div>
+
+                    <i class="fas fa-lock"></i>
+
+                    Secure Checkout
+
+                </div>
+
+            </div>
+
+            <!-- ACCORDION -->
+
+            <div class="accordion">
+
+                <details open>
+
+                    <summary>
+
+                        Product Details
+
+                    </summary>
+
+                    <div id="detail-extra">
+
+                    </div>
+
+                </details>
+
+                <details>
+
+                    <summary>
+
+                        Materials & Care
+
+                    </summary>
+
+                    <p>
+
+                        Dry clean only.
+
+                        Premium imported fabrics.
+
+                        Designed for longevity.
+
+                    </p>
+
+                </details>
+
+                <details>
+
+                    <summary>
+
+                        Shipping
+
+                    </summary>
+
+                    <p>
+
+                        Orders are dispatched within
+                        24–48 hours.
+
+                    </p>
+
+                </details>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- RELATED PRODUCTS -->
+
+    <section class="related-products">
+
+        <div class="section-heading">
+
+            <span>
+
+                Recommended
+
+            </span>
+
+            <h2>
+
+                You May Also Like
+
+            </h2>
+
+        </div>
+
+        <div
+            id="related-products-grid"
+            class="product-grid">
+
+        </div>
+
+    </section>
+
+</section>
+
+<!-- =====================================================
+HERITAGE PAGE
+====================================================== -->
+
+<section
+    id="heritage-page"
+    class="view-section">
+
+    <header class="page-header">
+
+        <span>Our Heritage</span>
+
+        <h2>
+
+            Crafted Beyond Trends
+
+        </h2>
+
+        <p>
+
+            A story of timeless elegance and exceptional craftsmanship.
+
+        </p>
+
+    </header>
+
+    <section class="heritage-grid">
+
+        <div class="heritage-image">
+
+            <img
+                src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1600"
+                alt="Luxury Atelier">
+
+        </div>
+
+        <div class="heritage-content">
+
+            <h3>
+
+                Since 1984
+
+            </h3>
+
+            <p>
+
+                L'ÉTERNEL was founded with one belief:
+
+                True luxury never shouts.
+
+            </p>
+
+            <p>
+
+                Every garment is produced using carefully selected fabrics,
+                exceptional tailoring,
+                and timeless silhouettes.
+
+            </p>
+
+            <p>
+
+                We create collections intended to be worn for decades,
+                not seasons.
+
+            </p>
+
+        </div>
+
+    </section>
+
+    <section class="heritage-values">
+
+        <article>
+
+            <i class="fas fa-feather-alt"></i>
+
+            <h4>
+
+                Minimalism
+
+            </h4>
+
+            <p>
+
+                Simplicity refined to perfection.
+
+            </p>
+
+        </article>
+
+        <article>
+
+            <i class="fas fa-gem"></i>
+
+            <h4>
+
+                Premium Materials
+
+            </h4>
+
+            <p>
+
+                Only exceptional fabrics.
+
+            </p>
+
+        </article>
+
+        <article>
+
+            <i class="fas fa-leaf"></i>
+
+            <h4>
+
+                Sustainability
+
+            </h4>
+
+            <p>
+
+                Crafted responsibly.
+
+            </p>
+
+        </article>
+
+    </section>
+
+</section>
+
+<!-- =====================================================
+CHECKOUT PAGE
+====================================================== -->
+
+<section
+    id="checkout-page"
+    class="view-section">
+
+    <div class="checkout-container">
+
+        <div class="checkout-left">
+
+            <h2>
+
+                Secure Checkout
+
+            </h2>
+
+            <form id="checkout-form">
+
+                <div class="form-row">
+
+                    <input
+                        id="checkout-name"
+                        type="text"
+                        placeholder="Full Name"
+                        required>
+
+                </div>
+
+                <div class="form-row">
+
+                    <input
+                        id="checkout-email"
+                        type="email"
+                        placeholder="Email Address"
+                        required>
+
+                </div>
+
+                <div class="form-row">
+
+                    <input
+                        id="checkout-phone"
+                        type="tel"
+                        placeholder="Phone Number">
+
+                </div>
+
+                <div class="form-row">
+
+                    <input
+                        id="checkout-address"
+                        type="text"
+                        placeholder="Shipping Address"
+                        required>
+
+                </div>
+
+                <div class="form-row">
+
+                    <input
+                        id="checkout-city"
+                        type="text"
+                        placeholder="City">
+
+                </div>
+
+                <div class="form-row">
+
+                    <input
+                        id="checkout-country"
+                        type="text"
+                        placeholder="Country">
+
+                </div>
+
+                <div class="form-row">
+
+                    <textarea
+                        id="checkout-note"
+                        placeholder="Order Notes (Optional)"></textarea>
+
+                </div>
+
+                <button
+                    class="primary-btn"
+                    type="submit">
+
+                    Place Order
+
+                </button>
+
+            </form>
+
+        </div>
+
+        <div class="checkout-right">
+
+            <h3>
+
+                Order Summary
+
+            </h3>
+
+            <div
+                id="checkout-items">
+
+            </div>
+
+            <div class="summary-row">
+
+                <span>Subtotal</span>
+
+                <span id="checkout-subtotal">$0.00</span>
+
+            </div>
+
+            <div class="summary-row">
+
+                <span>Shipping</span>
+
+                <span>FREE</span>
+
+            </div>
+
+            <div class="summary-row total">
+
+                <span>Total</span>
+
+                <span id="checkout-total">$0.00</span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- =====================================================
+PROFILE MODAL
+====================================================== -->
+
+<div
+    id="profileModal"
+    class="modal">
+
+    <div class="modal-content">
+
+        <button
+            id="closeProfileBtn"
+            class="modal-close">
+
+            &times;
+
+        </button>
+
+        <h2>
+
+            My Account
+
+        </h2>
+
+        <div class="profile-avatar">
+
+            <img
+                id="profileAvatar"
+                src="https://ui-avatars.com/api/?name=User&background=111111&color=ffffff"
+                alt="Avatar">
+
+        </div>
+
+        <div class="profile-info">
+
+            <p>
+
+                <strong>Name</strong>
+
+            </p>
+
+            <input
+                id="profile-name"
+                type="text">
+
+            <p>
+
+                <strong>Email</strong>
+
+            </p>
+
+            <input
+                id="profile-email"
+                type="email"
+                disabled>
+
+            <p>
+
+                <strong>Member Since</strong>
+
+            </p>
+
+            <span id="memberSince">
+
+            </span>
+
+        </div>
+
+        <button
+            id="saveProfileBtn"
+            class="primary-btn">
+
+            Save Changes
+
+        </button>
+
+        <button
+            id="logoutBtn"
+            class="secondary-btn">
+
+            Logout
+
+        </button>
+
+    </div>
+
+</div>
+
+<!-- =====================================================
+AUTH MODAL
+====================================================== -->
+
+<div
+    id="authModal"
+    class="modal">
+
+    <div class="modal-content auth-content">
+
+        <button
+            id="closeAuthBtn"
+            class="modal-close">
+
+            &times;
+
+        </button>
+
+        <h2
+            id="auth-title">
+
+            Welcome Back
+
+        </h2>
+
+        <form
+            id="auth-form">
+
+            <input
+                id="auth-email"
+                type="email"
+                placeholder="Email Address"
+                required>
+
+            <input
+                id="auth-password"
+                type="password"
+                placeholder="Password"
+                required>
+
+            <button
+                id="auth-submit"
+                class="primary-btn">
+
+                Sign In
+
+            </button>
+
+        </form>
+
+        <p>
+
+            <span id="auth-toggle-text">
+
+                Don't have an account?
+
+            </span>
+
+            <a
+                href="#"
+                id="toggle-auth-mode">
+
+                Create One
+
+            </a>
+
+        </p>
+
+    </div>
+
+</div>
+
+<!-- =====================================================
+WISHLIST DRAWER
+====================================================== -->
+
+<aside
+    id="wishlistDrawer"
+    class="drawer">
+
+    <header>
+
+        <h2>
+
+            Wishlist
+
+        </h2>
+
+        <button
+            id="closeWishlist">
+
+            &times;
+
+        </button>
+
+    </header>
+
+    <div
+        id="wishlist-items">
+
+    </div>
+
+    <div
+        id="wishlist-empty"
+        class="drawer-empty">
+
+        <i class="far fa-heart"></i>
+
+        <p>
+
+            Your wishlist is empty.
+
+        </p>
+
+    </div>
+
+</aside>
+
+<!-- =====================================================
+SHOPPING CART DRAWER
+====================================================== -->
+
+<aside
+    id="cartDrawer"
+    class="drawer">
+
+    <header>
+
+        <h2>
+
+            Shopping Bag
+
+        </h2>
+
+        <button
+            id="closeCart">
+
+            &times;
+
+        </button>
+
+    </header>
+
+    <div
+        id="cart-items">
+
+    </div>
+
+    <div
+        id="empty-cart"
+        class="drawer-empty">
+
+        <i class="fas fa-shopping-bag"></i>
+
+        <p>
+
+            Your bag is currently empty.
+
+        </p>
+
+    </div>
+
+    <footer>
+
+        <div class="cart-total">
+
+            <span>Total</span>
+
+            <span id="cart-total">
+
+                $0.00
+
+            </span>
+
+        </div>
+
+        <button
+            id="goToCheckout"
+            class="primary-btn">
+
+            Proceed To Checkout
+
+        </button>
+
+    </footer>
+
+</aside>
+
+<!-- Drawer Overlay -->
+
+<div
+    id="drawerOverlay"
+    class="drawer-overlay">
+
+</div> 
+
+<!-- =====================================================
+ADMIN DASHBOARD
+====================================================== -->
+
+<section
+    id="admin-page"
+    class="view-section admin-page">
+
+    <div class="admin-wrapper">
+
+        <!-- ==========================
+        ADMIN HEADER
+        =========================== -->
+
+        <header class="admin-header">
+
+            <div>
+
+                <span class="admin-label">
+
+                    Store Dashboard
+
+                </span>
+
+                <h2>
+
+                    L'ÉTERNEL Admin Panel
+
+                </h2>
+
+            </div>
+
+            <button
+                id="adminLogoutBtn"
+                class="secondary-btn">
+
+                Logout
+
+            </button>
+
+        </header>
+
+        <!-- ==========================
+        DASHBOARD CARDS
+        =========================== -->
+
+        <section class="dashboard-cards">
+
+            <div class="dashboard-card">
+
+                <i class="fas fa-box"></i>
+
+                <h3 id="dashboard-products">
+
+                    0
+
+                </h3>
+
+                <span>
+
+                    Products
+
+                </span>
+
+            </div>
+
+            <div class="dashboard-card">
+
+                <i class="fas fa-shopping-bag"></i>
+
+                <h3 id="dashboard-orders">
+
+                    0
+
+                </h3>
+
+                <span>
+
+                    Orders
+
+                </span>
+
+            </div>
+
+            <div class="dashboard-card">
+
+                <i class="fas fa-users"></i>
+
+                <h3 id="dashboard-users">
+
+                    0
+
+                </h3>
+
+                <span>
+
+                    Customers
+
+                </span>
+
+            </div>
+
+            <div class="dashboard-card">
+
+                <i class="fas fa-dollar-sign"></i>
+
+                <h3 id="dashboard-sales">
+
+                    $0
+
+                </h3>
+
+                <span>
+
+                    Revenue
+
+                </span>
+
+            </div>
+
+        </section>
+
+        <!-- ==========================
+        PRODUCT FORM
+        =========================== -->
+
+        <section class="admin-section">
+
+            <h3>
+
+                Add Product
+
+            </h3>
+
+            <form id="product-form">
+
+                <div class="admin-grid">
+
+                    <input
+                        id="product-name"
+                        type="text"
+                        placeholder="Product Name"
+                        required>
+
+                    <input
+                        id="product-price"
+                        type="number"
+                        placeholder="Price"
+                        required>
+
+                    <select
+                        id="product-category">
+
+                        <option value="menswear">
+
+                            Menswear
+
+                        </option>
+
+                        <option value="womenswear">
+
+                            Womenswear
+
+                        </option>
+
+                        <option value="accessories">
+
+                            Accessories
+
+                        </option>
+
+                    </select>
+
+                    <input
+                        id="product-brand"
+                        type="text"
+                        placeholder="Brand">
+
+                </div>
+
+                <textarea
+                    id="product-description"
+                    placeholder="Product Description"></textarea>
+
+                <div class="admin-grid">
+
+                    <input
+                        id="product-stock"
+                        type="number"
+                        placeholder="Stock">
+
+                    <input
+                        id="product-discount"
+                        type="number"
+                        placeholder="Discount %">
+
+                </div>
+
+                <div class="upload-grid">
+
+                    <div>
+
+                        <label>
+
+                            Main Image
+
+                        </label>
+
+                        <input
+                            id="product-main-image"
+                            type="file"
+                            accept="image/*">
+
+                    </div>
+
+                    <div>
+
+                        <label>
+
+                            Gallery Image 1
+
+                        </label>
+
+                        <input
+                            id="gallery-image-1"
+                            type="file"
+                            accept="image/*">
+
+                    </div>
+
+                    <div>
+
+                        <label>
+
+                            Gallery Image 2
+
+                        </label>
+
+                        <input
+                            id="gallery-image-2"
+                            type="file"
+                            accept="image/*">
+
+                    </div>
+
+                    <div>
+
+                        <label>
+
+                            Gallery Image 3
+
+                        </label>
+
+                        <input
+                            id="gallery-image-3"
+                            type="file"
+                            accept="image/*">
+
+                    </div>
+
+                </div>
+
+                <button
+                    id="publishProductBtn"
+                    class="primary-btn">
+
+                    Publish Product
+
+                </button>
+
+            </form>
+
+        </section>
+
+        <!-- ==========================
+        INVENTORY
+        =========================== -->
+
+        <section class="admin-section">
+
+            <h3>
+
+                Inventory
+
+            </h3>
+
+            <table class="admin-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Image</th>
+
+                        <th>Name</th>
+
+                        <th>Category</th>
+
+                        <th>Price</th>
+
+                        <th>Stock</th>
+
+                        <th>Actions</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody
+                    id="inventoryTable">
+
+                </tbody>
+
+            </table>
+
+        </section>
+
+        <!-- ==========================
+        ORDERS
+        =========================== -->
+
+        <section class="admin-section">
+
+            <h3>
+
+                Customer Orders
+
+            </h3>
+
+            <table class="admin-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Order</th>
+
+                        <th>Customer</th>
+
+                        <th>Total</th>
+
+                        <th>Status</th>
+
+                        <th>Date</th>
+
+                        <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody
+                    id="ordersTable">
+
+                </tbody>
+
+            </table>
+
+        </section>
+
+        <!-- ==========================
+        CUSTOMERS
+        =========================== -->
+
+        <section class="admin-section">
+
+            <h3>
+
+                Registered Customers
+
+            </h3>
+
+            <table class="admin-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Name</th>
+
+                        <th>Email</th>
+
+                        <th>Orders</th>
+
+                        <th>Joined</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody
+                    id="customersTable">
+
+                </tbody>
+
+            </table>
+
+        </section>
+
+        <!-- ==========================
+        SALES CHART
+        =========================== -->
+
+        <section class="admin-section">
+
+            <h3>
+
+                Sales Overview
+
+            </h3>
+
+            <div
+                id="salesChart"
+                class="chart-placeholder">
+
+                Sales analytics will appear here.
+
+            </div>
+
+        </section>
+
+    </div>
+
+</section>
+
+<!-- =====================================================
+FOOTER
+====================================================== -->
+
+<footer class="site-footer">
+
+    <div class="footer-container">
+
+        <div class="footer-brand">
+
+            <h2>
+
+                L'ÉTERNEL
+
+            </h2>
+
+            <p>
+
+                Quiet luxury crafted for those who appreciate
+                timeless design, exceptional materials,
+                and understated elegance.
+
+            </p>
+
+        </div>
+
+        <div class="footer-links">
+
+            <h4>
+
+                Shop
+
+            </h4>
+
+            <a href="#" data-target="shop-page">
+
+                New Arrivals
+
+            </a>
+
+            <a href="#" data-target="shop-page">
+
+                Menswear
+
+            </a>
+
+            <a href="#" data-target="shop-page">
+
+                Womenswear
+
+            </a>
+
+            <a href="#" data-target="shop-page">
+
+                Accessories
+
+            </a>
+
+        </div>
+
+        <div class="footer-links">
+
+            <h4>
+
+                Company
+
+            </h4>
+
+            <a href="#" data-target="heritage-page">
+
+                Heritage
+
+            </a>
+
+            <a href="#">
+
+                Sustainability
+
+            </a>
+
+            <a href="#">
+
+                Careers
+
+            </a>
+
+            <a href="#contact-page">
+
+                Contact
+
+            </a>
+
+        </div>
+
+        <div class="footer-links">
+
+            <h4>
+
+                Customer Care
+
+            </h4>
+
+            <a href="#">
+
+                Shipping
+
+            </a>
+
+            <a href="#">
+
+                Returns
+
+            </a>
+
+            <a href="#">
+
+                Privacy Policy
+
+            </a>
+
+            <a href="#">
+
+                Terms & Conditions
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="footer-social">
+
+        <a href="#">
+
+            <i class="fab fa-instagram"></i>
+
+        </a>
+
+        <a href="#">
+
+            <i class="fab fa-facebook-f"></i>
+
+        </a>
+
+        <a href="#">
+
+            <i class="fab fa-x-twitter"></i>
+
+        </a>
+
+        <a href="#">
+
+            <i class="fab fa-pinterest-p"></i>
+
+        </a>
+
+    </div>
+
+    <div class="footer-bottom">
+
+        © 2026 L'ÉTERNEL Store.
+        All Rights Reserved.
+
+    </div>
+
+</footer>
+
+<!-- =====================================================
+GLOBAL OVERLAY
+====================================================== -->
+
+<div id="globalOverlay" class="global-overlay"></div>
+
+<!-- =====================================================
+GLOBAL LOADING
+====================================================== -->
+
+<div id="loadingScreen" class="loading-screen">
+
+    <div class="loader">
+
+        <div class="loader-ring"></div>
+
+        <h2>
+
+            L'ÉTERNEL
+
+        </h2>
+
+        <p>
+
+            Loading Experience...
+
+        </p>
+
+    </div>
+
+</div>
+
+<!-- =====================================================
+CONFIRMATION MODAL
+====================================================== -->
+
+<div
+    id="confirmationModal"
+    class="modal">
+
+    <div class="modal-content confirmation-content">
+
+        <div class="confirmation-icon">
+
+            <i class="fas fa-check-circle"></i>
+
+        </div>
+
+        <h2>
+
+            Success
+
+        </h2>
+
+        <p id="confirmationMessage">
+
+            Action completed successfully.
+
+        </p>
+
+        <button
+            id="confirmationBtn"
+            class="primary-btn">
+
+            Continue
+
+        </button>
+
+    </div>
+
+</div>
+
+<!-- =====================================================
+BACK TO TOP
+====================================================== -->
+
+<button
+    id="backToTop"
+    class="back-to-top">
+
+    <i class="fas fa-chevron-up"></i>
+
+</button>
+
+<!-- =====================================================
+MOBILE NAVIGATION
+====================================================== -->
+
+<nav class="mobile-bottom-nav">
+
+    <button
+        data-target="home-page">
+
+        <i class="fas fa-house"></i>
+
+        <span>
+
+            Home
+
+        </span>
+
+    </button>
+
+    <button
+        data-target="shop-page">
+
+        <i class="fas fa-store"></i>
+
+        <span>
+
+            Shop
+
+        </span>
+
+    </button>
+
+    <button
+        id="mobileWishlist">
+
+        <i class="far fa-heart"></i>
+
+        <span>
+
+            Wishlist
+
+        </span>
+
+    </button>
+
+    <button
+        id="mobileCart">
+
+        <i class="fas fa-shopping-bag"></i>
+
+        <span>
+
+            Bag
+
+        </span>
+
+    </button>
+
+    <button
+        id="mobileProfile">
+
+        <i class="far fa-user"></i>
+
+        <span>
+
+            Profile
+
+        </span>
+
+    </button>
+
+</nav>
+
+<!-- =====================================================
+FIREBASE SDK (v8)
+====================================================== -->
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
+<!-- =====================================================
+APPLICATION SCRIPTS
+====================================================== -->
+
+<script src="firebase.js"></script>
+<script src="app.js"></script>
+<script src="utils.js"></script>
+<script src="router.js"></script>
+<script src="auth.js"></script>
+<script src="products.js"></script>
+<script src="cart.js"></script>
+<script src="wishlist.js"></script>
+<script src="checkout.js"></script>
+<script src="profile.js"></script>
+<script src="admin.js"></script>
+<script src="search.js"></script>
+<script src="ui.js"></script>
+
+</div>
+
+</body>
+</html>

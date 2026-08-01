@@ -1,0 +1,319 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    /* ======================================================
+       SHARED HELPERS
+    ====================================================== */
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDocument() {
+      return firestore.get(
+        /databases/(default)/documents/users/$(request.auth.uid)
+      );
+    }
+
+    function userProfileExists() {
+      return isSignedIn() &&
+        firestore.exists(
+          /databases/(default)/documents/users/$(request.auth.uid)
+        );
+    }
+
+    function hasAdminClaim() {
+      return isSignedIn() &&
+        (
+          request.auth.token.admin == true ||
+          request.auth.token.role == "admin" ||
+          request.auth.token.role == "superadmin"
+        );
+    }
+
+    function hasAdminProfile() {
+      return userProfileExists() &&
+        (
+          userDocument().data.role == "admin" ||
+          userDocument().data.role == "superadmin"
+        ) &&
+        userDocument().data.status == "active";
+    }
+
+    function isAdmin() {
+      return hasAdminClaim() ||
+        hasAdminProfile();
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() &&
+        (
+          request.auth.token.role == "superadmin" ||
+          (
+            userProfileExists() &&
+            userDocument().data.role == "superadmin" &&
+            userDocument().data.status == "active"
+          )
+        );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() &&
+        request.auth.uid == userId;
+    }
+
+    function isImage() {
+      return request.resource != null &&
+        request.resource.contentType != null &&
+        request.resource.contentType.matches(
+          "image/(jpeg|png|webp)"
+        );
+    }
+
+    function isDocument() {
+      return request.resource != null &&
+        request.resource.contentType != null &&
+        request.resource.contentType.matches(
+          "application/(pdf|msword|vnd.openxmlformats-officedocument.wordprocessingml.document)"
+        );
+    }
+
+    function isVideo() {
+      return request.resource != null &&
+        request.resource.contentType != null &&
+        request.resource.contentType.matches(
+          "video/(mp4|webm)"
+        );
+    }
+
+    function isUnderSize(maximumBytes) {
+      return request.resource != null &&
+        request.resource.size <= maximumBytes;
+    }
+
+    function validImageUpload(maximumBytes) {
+      return isImage() &&
+        isUnderSize(maximumBytes);
+    }
+
+    function hasUserMetadata(userId) {
+      return request.resource.metadata != null &&
+        (
+          request.resource.metadata.userId == userId ||
+          request.resource.metadata.uploadedBy == userId
+        );
+    }
+
+    function hasProductMetadata(productId) {
+      return request.resource.metadata != null &&
+        request.resource.metadata.productId == productId;
+    }
+
+    function productExists(productId) {
+      return firestore.exists(
+        /databases/(default)/documents/products/$(productId)
+      );
+    }
+
+    /* ======================================================
+       PUBLIC PRODUCT IMAGES
+    ====================================================== */
+
+    match /products/{productId}/{fileName} {
+      allow read: if true;
+
+      allow create: if isAdmin() &&
+        validImageUpload(8 * 1024 * 1024) &&
+        hasProductMetadata(productId);
+
+      allow update: if isAdmin() &&
+        validImageUpload(8 * 1024 * 1024) &&
+        hasProductMetadata(productId);
+
+      allow delete: if isAdmin();
+    }
+
+    /*
+     * Supports deeper product image paths, for example:
+     * products/{productId}/gallery/{fileName}
+     */
+    match /products/{productId}/{folder}/{fileName} {
+      allow read: if true;
+
+      allow create, update: if isAdmin() &&
+        validImageUpload(8 * 1024 * 1024) &&
+        hasProductMetadata(productId);
+
+      allow delete: if isAdmin();
+    }
+
+    /* ======================================================
+       CUSTOMER PROFILE PHOTOS
+    ====================================================== */
+
+    match /users/{userId}/profile/{fileName} {
+      allow read: if true;
+
+      allow create, update: if isOwner(userId) &&
+        validImageUpload(5 * 1024 * 1024) &&
+        hasUserMetadata(userId);
+
+      allow delete: if isOwner(userId) ||
+        isAdmin();
+    }
+
+    /* ======================================================
+       CUSTOMER REVIEW IMAGES
+    ====================================================== */
+
+    match /users/{userId}/reviews/{reviewId}/{fileName} {
+      allow read: if true;
+
+      allow create, update: if isOwner(userId) &&
+        validImageUpload(5 * 1024 * 1024) &&
+        hasUserMetadata(userId);
+
+      allow delete: if isOwner(userId) ||
+        isAdmin();
+    }
+
+    /* ======================================================
+       CUSTOMER SUPPORT ATTACHMENTS
+    ====================================================== */
+
+    match /users/{userId}/support/{ticketId}/{fileName} {
+      allow read: if isOwner(userId) ||
+        isAdmin();
+
+      allow create: if isOwner(userId) &&
+        isUnderSize(10 * 1024 * 1024) &&
+        (
+          isImage() ||
+          isDocument()
+        ) &&
+        hasUserMetadata(userId);
+
+      allow update: if false;
+
+      allow delete: if isOwner(userId) ||
+        isAdmin();
+    }
+
+    /* ======================================================
+       ORDER ATTACHMENTS
+    ====================================================== */
+
+    match /orders/{orderId}/{fileName} {
+      allow read: if isAdmin() ||
+        (
+          isSignedIn() &&
+          firestore.exists(
+            /databases/(default)/documents/orders/$(orderId)
+          ) &&
+          firestore.get(
+            /databases/(default)/documents/orders/$(orderId)
+          ).data.userId == request.auth.uid
+        );
+
+      allow create, update, delete: if isAdmin();
+    }
+
+    /* ======================================================
+       CATEGORY & COLLECTION MEDIA
+    ====================================================== */
+
+    match /categories/{categoryId}/{fileName} {
+      allow read: if true;
+
+      allow create, update: if isAdmin() &&
+        validImageUpload(8 * 1024 * 1024);
+
+      allow delete: if isAdmin();
+    }
+
+    match /collections/{collectionId}/{fileName} {
+      allow read: if true;
+
+      allow create, update: if isAdmin() &&
+        validImageUpload(8 * 1024 * 1024);
+
+      allow delete: if isAdmin();
+    }
+
+    /* ======================================================
+       SITE CONTENT
+    ====================================================== */
+
+    match /site/{folder}/{fileName} {
+      allow read: if true;
+
+      allow create, update: if isAdmin() &&
+        isUnderSize(20 * 1024 * 1024) &&
+        (
+          isImage() ||
+          isVideo()
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    match /site/{folder}/{subfolder}/{fileName} {
+      allow read: if true;
+
+      allow create, update: if isAdmin() &&
+        isUnderSize(20 * 1024 * 1024) &&
+        (
+          isImage() ||
+          isVideo()
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    /* ======================================================
+       ADMIN PRIVATE FILES
+    ====================================================== */
+
+    match /admin/{folder}/{fileName} {
+      allow read, create, update: if isAdmin() &&
+        isUnderSize(20 * 1024 * 1024);
+
+      allow delete: if isAdmin();
+    }
+
+    match /admin/{folder}/{subfolder}/{fileName} {
+      allow read, create, update: if isAdmin() &&
+        isUnderSize(20 * 1024 * 1024);
+
+      allow delete: if isAdmin();
+    }
+
+    /* ======================================================
+       TEMPORARY UPLOADS
+    ====================================================== */
+
+    match /temporary/{userId}/{fileName} {
+      allow read: if isOwner(userId) ||
+        isAdmin();
+
+      allow create: if isOwner(userId) &&
+        isUnderSize(10 * 1024 * 1024) &&
+        hasUserMetadata(userId);
+
+      allow update: if false;
+
+      allow delete: if isOwner(userId) ||
+        isAdmin();
+    }
+
+    /* ======================================================
+       DEFAULT DENY
+    ====================================================== */
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
