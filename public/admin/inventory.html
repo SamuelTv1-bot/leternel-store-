@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="robots"
+        content="noindex, nofollow"
+    >
+
+    <title>
+        L'ÉTERNEL Admin · Inventory
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/css/main.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="/css/admin.css"
+    >
+</head>
+
+<body class="admin-page">
+
+    <div class="admin-shell">
+
+        <!-- ==================================================
+             SIDEBAR
+        =================================================== -->
+
+        <aside
+            class="admin-sidebar"
+            aria-label="Admin navigation"
+        >
+            <div class="admin-sidebar-header">
+                <a
+                    href="/admin/"
+                    class="admin-brand"
+                    aria-label="L'ÉTERNEL Admin"
+                >
+                    <span class="admin-brand-mark">
+                        L'É
+                    </span>
+
+                    <span class="admin-brand-copy">
+                        <strong>
+                            L'ÉTERNEL
+                        </strong>
+
+                        <small>
+                            Administration
+                        </small>
+                    </span>
+                </a>
+            </div>
+
+            <nav
+                class="admin-navigation"
+                data-admin-nav
+                aria-label="Primary admin navigation"
+            >
+                <a
+                    href="/admin/"
+                    class="admin-nav-link"
+                    data-admin-route="dashboard"
+                >
+                    <span
+                        class="admin-nav-icon"
+                        aria-hidden="true"
+                    >
+                        ◇
+                    </span>
+
+                    <span>
+                        Dashboard
+                    </span>
+                </a>
+
+                <a
+                    href="/admin/products.html"
+                    class="admin-nav-link"
+                    data-admin-route="products"
+                >
+                    <span
+                        class="admin-nav-icon"
+                        aria-hidden="true"
+                    >
+                        □
+                    </span>
+
+                    <span>
+                        Products
+                    </span>
+                </a>
+
+                <a
+                    href="/admin/orders.html"
+                    class="admin-nav-link"
+                    data-admin-route="orders"
+                >
+                    <span
+                        class="admin-nav-icon"
+                        aria-hidden="true"
+                    >
+                        ◫
+                    </span>
+
+                    <span>
+                        Orders
+                    </span>
+                </a>
+
+                <a
+                    href="/admin/customers.html"
+                    class="admin-nav-link"
+                    data-admin-route="customers"
+                >
+                    <span
+                        class="admin-nav-icon"
+                        aria-hidden="true"
+                    >
+                        ○
+                    </span>
+
+                    <span>
+                        Customers
+                    </span>
+                </a>
+
+                <a
+                    href="/admin/inventory.html"
+                    class="admin-nav-link"
+                    data-admin-route="inventory"
+                >
+                    <span
+                        class="admin-nav-icon"
+                        aria-hidden="true"
+                    >
+                        ▦
+                    </span>
+
+                    <span>
+                        Inventory
+                    </span>
+                </a>
+
+                <a
+                    href="/admin/operations.html"
+                    class="admin-nav-link"
+                    data-admin-route="operations"
+                >
+                    <span
+                        class="admin-nav-icon"
+                        aria-hidden="true"
+                    >
+                        ⚙
+                    </span>
+
+                    <span>
+                        Operations
+                    </span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <a
+                    href="/"
+                    class="admin-store-link"
+                >
+                    <span>
+                        View Store
+                    </span>
+
+                    <span aria-hidden="true">
+                        ↗
+                    </span>
+                </a>
+
+                <button
+                    type="button"
+                    class="admin-signout-button"
+                    data-admin-signout
+                >
+                    Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- ==================================================
+             MAIN
+        =================================================== -->
+
+        <div class="admin-main">
+
+            <header class="admin-topbar">
+                <button
+                    type="button"
+                    class="admin-menu-button"
+                    data-admin-menu-toggle
+                    aria-label="Toggle admin navigation"
+                    aria-expanded="false"
+                >
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <div class="admin-topbar-context">
+                    <span class="admin-topbar-eyebrow">
+                        Stock Control
+                    </span>
+
+                    <strong>
+                        Inventory
+                    </strong>
+                </div>
+
+                <div class="admin-topbar-user">
+                    <div class="admin-user-copy">
+                        <strong
+                            data-admin-user-name
+                        >
+                            Administrator
+                        </strong>
+
+                        <span
+                            data-admin-user-email
+                        >
+                            —
+                        </span>
+                    </div>
+
+                    <div
+                        class="admin-avatar"
+                        data-admin-avatar
+                        aria-hidden="true"
+                    >
+                        A
+                    </div>
+                </div>
+            </header>
+
+            <!-- ==============================================
+                 INVENTORY CONTENT
+            =============================================== -->
+
+            <main
+                class="admin-content"
+                data-admin-content
+                data-admin-inventory
+                data-active-admin-route="inventory"
+            >
+                <section class="admin-dashboard-hero">
+                    <div>
+                        <p class="admin-eyebrow">
+                            Stock Control
+                        </p>
+
+                        <h1>
+                            Inventory
+                        </h1>
+
+                        <p class="admin-muted">
+                            Monitor stock levels, reserved quantities,
+                            product availability, reorder thresholds,
+                            and inventory adjustments.
+                        </p>
+                    </div>
+
+                    <div class="admin-toolbar">
+                        <button
+                            type="button"
+                            class="admin-button admin-button-secondary"
+                            data-inventory-export
+                        >
+                            Export CSV
+                        </button>
+
+                        <button
+                            type="button"
+                            class="admin-button"
+                            data-inventory-refresh
+                        >
+                            Refresh Inventory
+                        </button>
+                    </div>
+                </section>
+
+                <div
+                    class="admin-status-message"
+                    data-inventory-status
+                    data-status="info"
+                    aria-live="polite"
+                ></div>
+
+                <!-- ==========================================
+                     INVENTORY METRICS
+                =========================================== -->
+
+                <section
+                    class="admin-dashboard-grid"
+                    aria-label="Inventory metrics"
+                >
+                    <article class="admin-dashboard-stat">
+                        <div class="admin-dashboard-stat-heading">
+                            <span>
+                                Products Tracked
+                            </span>
+                        </div>
+
+                        <strong
+                            class="admin-dashboard-stat-value"
+                            data-inventory-total-products
+                        >
+                            —
+                        </strong>
+
+                        <small>
+                            Catalogue items with stock records
+                        </small>
+                    </article>
+
+                    <article class="admin-dashboard-stat">
+                        <div class="admin-dashboard-stat-heading">
+                            <span>
+                                Units Available
+                            </span>
+                        </div>
+
+                        <strong
+                            class="admin-dashboard-stat-value"
+                            data-inventory-total-available
+                        >
+                            —
+                        </strong>
+
+                        <small>
+                            Sellable units across all products
+                        </small>
+                    </article>
+
+                    <article class="admin-dashboard-stat">
+                        <div class="admin-dashboard-stat-heading">
+                            <span>
+                                Low Stock
+                            </span>
+                        </div>
+
+                        <strong
+                            class="admin-dashboard-stat-value"
+                            data-inventory-low-stock
+                        >
+                            —
+                        </strong>
+
+                        <small>
+                            Products at or below threshold
+                        </small>
+                    </article>
+
+                    <article class="admin-dashboard-stat">
+                        <div class="admin-dashboard-stat-heading">
+                            <span>
+                                Out of Stock
+                            </span>
+                        </div>
+
+                        <strong
+                            class="admin-dashboard-stat-value"
+                            data-inventory-out-of-stock
+                        >
+                            —
+                        </strong>
+
+                        <small>
+                            Products currently unavailable
+                        </small>
+                    </article>
+                </section>
+
+                <!-- ==========================================
+                     FILTERS
+                =========================================== -->
+
+                <section class="admin-card">
+                    <div class="admin-products-toolbar">
+                        <label class="admin-search-field">
+                            <span class="sr-only">
+                                Search inventory
+                            </span>
+
+                            <input
+                                type="search"
+                                placeholder="Search by product, SKU, category or collection"
+                                autocomplete="off"
+                                data-inventory-search
+                            >
+                        </label>
+
+                        <div class="admin-products-filters">
+                            <label class="admin-field">
+                                <span>
+                                    Stock Status
+                                </span>
+
+                                <select data-inventory-status-filter>
+                                    <option value="">
+                                        All stock statuses
+                                    </option>
+
+                                    <option value="in-stock">
+                                        In Stock
+                                    </option>
+
+                                    <option value="low-stock">
+                                        Low Stock
+                                    </option>
+
+                                    <option value="out-of-stock">
+                                        Out of Stock
+                                    </option>
+
+                                    <option value="oversold">
+                                        Oversold
+                                    </option>
+
+                                    <option value="not-tracked">
+                                        Not Tracked
+                                    </option>
+                                </select>
+                            </label>
+
+                            <label class="admin-field">
+                                <span>
+                                    Availability
+                                </span>
+
+                                <select data-inventory-availability-filter>
+                                    <option value="">
+                                        All availability
+                                    </option>
+
+                                    <option value="available">
+                                        Available
+                                    </option>
+
+                                    <option value="unavailable">
+                                        Unavailable
+                                    </option>
+
+                                    <option value="preorder">
+                                        Preorder
+                                    </option>
+
+                                    <option value="backorder">
+                                        Backorder
+                                    </option>
+                                </select>
+                            </label>
+
+                            <label class="admin-field">
+                                <span>
+                                    Category
+                                </span>
+
+                                <select data-inventory-category-filter>
+                                    <option value="">
+                                        All categories
+                                    </option>
+                                </select>
+                            </label>
+
+                            <label class="admin-field">
+                                <span>
+                                    Sort
+                                </span>
+
+                                <select data-inventory-sort>
+                                    <option value="availableStock-asc">
+                                        Lowest available stock
+                                    </option>
+
+                                    <option value="availableStock-desc">
+                                        Highest available stock
+                                    </option>
+
+                                    <option value="name-asc">
+                                        Product A–Z
+                                    </option>
+
+                                    <option value="name-desc">
+                                        Product Z–A
+                                    </option>
+
+                                    <option value="updatedAt-desc">
+                                        Recently updated
+                                    </option>
+
+                                    <option value="reservedStock-desc">
+                                        Most reserved
+                                    </option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <div class="admin-toolbar">
+                            <button
+                                type="button"
+                                class="admin-button admin-button-secondary"
+                                data-inventory-clear-filters
+                            >
+                                Clear Filters
+                            </button>
+
+                            <button
+                                type="button"
+                                class="admin-button admin-button-secondary"
+                                data-inventory-show-low-stock
+                            >
+                                Show Low Stock
+                            </button>
+
+                            <button
+                                type="button"
+                                class="admin-button admin-button-secondary"
+                                data-inventory-show-out-of-stock
+                            >
+                                Show Out of Stock
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     BULK ACTIONS
+                =========================================== -->
+
+                <section
+                    class="admin-card admin-bulk-actions"
+                    data-inventory-bulk-actions
+                    hidden
+                >
+                    <div>
+                        <strong data-inventory-selected-count>
+                            0
+                        </strong>
+
+                        <span>
+                            products selected
+                        </span>
+                    </div>
+
+                    <div class="admin-toolbar">
+                        <button
+                            type="button"
+                            class="admin-button admin-button-secondary"
+                            data-inventory-bulk-available
+                        >
+                            Mark Available
+                        </button>
+
+                        <button
+                            type="button"
+                            class="admin-button admin-button-secondary"
+                            data-inventory-bulk-unavailable
+                        >
+                            Mark Unavailable
+                        </button>
+
+                        <button
+                            type="button"
+                            class="admin-button admin-button-secondary"
+                            data-inventory-bulk-set-threshold
+                        >
+                            Set Threshold
+                        </button>
+
+                        <button
+                            type="button"
+                            class="admin-button admin-button-secondary"
+                            data-inventory-bulk-clear
+                        >
+                            Clear Selection
+                        </button>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     INVENTORY TABLE
+                =========================================== -->
+
+                <section class="admin-card">
+                    <div class="admin-card-heading">
+                        <div>
+                            <p class="admin-card-kicker">
+                                Stock Ledger
+                            </p>
+
+                            <h2>
+                                Inventory List
+                            </h2>
+                        </div>
+
+                        <div class="admin-selection-summary">
+                            <span data-inventory-visible-count>
+                                0
+                            </span>
+
+                            <span>
+                                visible
+                            </span>
+                        </div>
+                    </div>
+
+                    <div
+                        class="admin-table-wrap"
+                        data-inventory-table
+                    >
+                        <table class="admin-operation-table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input
+                                            type="checkbox"
+                                            aria-label="Select all visible inventory records"
+                                            data-inventory-select-all
+                                        >
+                                    </th>
+
+                                    <th>
+                                        Product
+                                    </th>
+
+                                    <th>
+                                        SKU
+                                    </th>
+
+                                    <th>
+                                        On Hand
+                                    </th>
+
+                                    <th>
+                                        Reserved
+                                    </th>
+
+                                    <th>
+                                        Available
+                                    </th>
+
+                                    <th>
+                                        Threshold
+                                    </th>
+
+                                    <th>
+                                        Status
+                                    </th>
+
+                                    <th>
+                                        Updated
+                                    </th>
+
+                                    <th>
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr>
+                                    <td
+                                        colspan="10"
+                                        class="admin-operation-empty"
+                                    >
+                                        Loading inventory…
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="admin-pagination">
+                        <button
+                            type="button"
+                            class="admin-button admin-button-secondary"
+                            data-inventory-previous
+                            disabled
+                        >
+                            Previous
+                        </button>
+
+                        <span data-inventory-page-label>
+                            Page 1
+                        </span>
+
+                        <button
+                            type="button"
+                            class="admin-button admin-button-secondary"
+                            data-inventory-next
+                            disabled
+                        >
+                            Next
+                        </button>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     RECENT ADJUSTMENTS
+                =========================================== -->
+
+                <section class="admin-card">
+                    <div class="admin-card-heading">
+                        <div>
+                            <p class="admin-card-kicker">
+                                Audit Trail
+                            </p>
+
+                            <h2>
+                                Recent Adjustments
+                            </h2>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="admin-button admin-button-secondary"
+                            data-inventory-adjustments-refresh
+                        >
+                            Refresh
+                        </button>
+                    </div>
+
+                    <div
+                        class="admin-table-wrap"
+                        data-inventory-adjustments-table
+                    >
+                        <table class="admin-operation-table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Product
+                                    </th>
+
+                                    <th>
+                                        Type
+                                    </th>
+
+                                    <th>
+                                        Change
+                                    </th>
+
+                                    <th>
+                                        Previous
+                                    </th>
+
+                                    <th>
+                                        New
+                                    </th>
+
+                                    <th>
+                                        Reason
+                                    </th>
+
+                                    <th>
+                                        User
+                                    </th>
+
+                                    <th>
+                                        Date
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr>
+                                    <td
+                                        colspan="8"
+                                        class="admin-operation-empty"
+                                    >
+                                        Loading adjustments…
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- ==================================================
+             INVENTORY EDITOR DRAWER
+        =================================================== -->
+
+        <aside
+            class="admin-editor-drawer admin-inventory-drawer"
+            data-inventory-drawer
+            aria-hidden="true"
+            aria-labelledby="inventory-drawer-title"
+        >
+            <div class="admin-editor-header">
+                <div>
+                    <p class="admin-card-kicker">
+                        Inventory Record
+                    </p>
+
+                    <h2 id="inventory-drawer-title">
+                        <span data-inventory-drawer-product-name>
+                            Product
+                        </span>
+                    </h2>
+                </div>
+
+                <button
+                    type="button"
+                    class="admin-editor-close"
+                    data-inventory-drawer-close
+                    aria-label="Close inventory editor"
+                >
+                    ×
+                </button>
+            </div>
+
+            <div class="admin-order-detail-body">
+
+                <!-- ==========================================
+                     PRODUCT SUMMARY
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <div class="admin-product-cell">
+                        <div
+                            class="admin-product-thumbnail admin-product-thumbnail-placeholder"
+                            data-inventory-product-placeholder
+                        >
+                            P
+                        </div>
+
+                        <img
+                            class="admin-product-thumbnail"
+                            src=""
+                            alt=""
+                            data-inventory-product-image
+                            hidden
+                        >
+
+                        <div>
+                            <strong data-inventory-product-name>
+                                Product
+                            </strong>
+
+                            <small data-inventory-product-sku>
+                                —
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="admin-order-summary-grid">
+                        <div>
+                            <span class="admin-label">
+                                Stock Status
+                            </span>
+
+                            <strong
+                                data-inventory-status-label
+                                data-status="in-stock"
+                            >
+                                In Stock
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span class="admin-label">
+                                Availability
+                            </span>
+
+                            <strong
+                                data-inventory-availability-label
+                                data-status="available"
+                            >
+                                Available
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span class="admin-label">
+                                On Hand
+                            </span>
+
+                            <strong data-inventory-on-hand-label>
+                                0
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span class="admin-label">
+                                Reserved
+                            </span>
+
+                            <strong data-inventory-reserved-label>
+                                0
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span class="admin-label">
+                                Available
+                            </span>
+
+                            <strong data-inventory-available-label>
+                                0
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span class="admin-label">
+                                Last Updated
+                            </span>
+
+                            <strong data-inventory-updated-at>
+                                —
+                            </strong>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     STOCK LEVELS
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <h3>
+                        Stock Levels
+                    </h3>
+
+                    <input
+                        type="hidden"
+                        data-inventory-product-id
+                    >
+
+                    <div class="admin-form-grid">
+                        <label class="admin-field">
+                            <span>
+                                On-hand Quantity
+                            </span>
+
+                            <input
+                                type="number"
+                                min="0"
+                                step="1"
+                                required
+                                data-inventory-on-hand
+                            >
+                        </label>
+
+                        <label class="admin-field">
+                            <span>
+                                Reserved Quantity
+                            </span>
+
+                            <input
+                                type="number"
+                                min="0"
+                                step="1"
+                                required
+                                data-inventory-reserved
+                            >
+                        </label>
+                    </div>
+
+                    <div class="admin-form-grid">
+                        <label class="admin-field">
+                            <span>
+                                Low-stock Threshold
+                            </span>
+
+                            <input
+                                type="number"
+                                min="0"
+                                step="1"
+                                required
+                                data-inventory-threshold
+                            >
+                        </label>
+
+                        <label class="admin-field">
+                            <span>
+                                Reorder Quantity
+                            </span>
+
+                            <input
+                                type="number"
+                                min="0"
+                                step="1"
+                                data-inventory-reorder-quantity
+                            >
+                        </label>
+                    </div>
+
+                    <div class="admin-form-grid">
+                        <label class="admin-field">
+                            <span>
+                                Availability
+                            </span>
+
+                            <select data-inventory-availability>
+                                <option value="available">
+                                    Available
+                                </option>
+
+                                <option value="unavailable">
+                                    Unavailable
+                                </option>
+
+                                <option value="preorder">
+                                    Preorder
+                                </option>
+
+                                <option value="backorder">
+                                    Backorder
+                                </option>
+                            </select>
+                        </label>
+
+                        <label class="admin-field">
+                            <span>
+                                Tracking
+                            </span>
+
+                            <select data-inventory-tracking>
+                                <option value="tracked">
+                                    Track Quantity
+                                </option>
+
+                                <option value="not-tracked">
+                                    Do Not Track
+                                </option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <label class="admin-checkbox-field">
+                        <input
+                            type="checkbox"
+                            data-inventory-allow-backorder
+                        >
+
+                        <span>
+                            Allow purchases when available stock reaches zero
+                        </span>
+                    </label>
+
+                    <label class="admin-checkbox-field">
+                        <input
+                            type="checkbox"
+                            data-inventory-notify-low-stock
+                        >
+
+                        <span>
+                            Notify administrators when stock reaches threshold
+                        </span>
+                    </label>
+
+                    <div class="admin-toolbar">
+                        <button
+                            type="button"
+                            class="admin-button"
+                            data-inventory-save
+                        >
+                            Save Inventory
+                        </button>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     QUICK ADJUSTMENT
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <h3>
+                        Quick Adjustment
+                    </h3>
+
+                    <div class="admin-form-grid">
+                        <label class="admin-field">
+                            <span>
+                                Adjustment Type
+                            </span>
+
+                            <select data-inventory-adjustment-type>
+                                <option value="increase">
+                                    Increase
+                                </option>
+
+                                <option value="decrease">
+                                    Decrease
+                                </option>
+
+                                <option value="set">
+                                    Set Exact Quantity
+                                </option>
+                            </select>
+                        </label>
+
+                        <label class="admin-field">
+                            <span>
+                                Quantity
+                            </span>
+
+                            <input
+                                type="number"
+                                min="0"
+                                step="1"
+                                data-inventory-adjustment-quantity
+                            >
+                        </label>
+                    </div>
+
+                    <label class="admin-field">
+                        <span>
+                            Reason
+                        </span>
+
+                        <select data-inventory-adjustment-reason>
+                            <option value="stock-received">
+                                Stock Received
+                            </option>
+
+                            <option value="stock-count">
+                                Stock Count
+                            </option>
+
+                            <option value="damaged">
+                                Damaged
+                            </option>
+
+                            <option value="returned">
+                                Customer Return
+                            </option>
+
+                            <option value="manual-correction">
+                                Manual Correction
+                            </option>
+
+                            <option value="sample">
+                                Sample or Display
+                            </option>
+
+                            <option value="other">
+                                Other
+                            </option>
+                        </select>
+                    </label>
+
+                    <label class="admin-field">
+                        <span>
+                            Adjustment Note
+                        </span>
+
+                        <textarea
+                            rows="4"
+                            data-inventory-adjustment-note
+                        ></textarea>
+                    </label>
+
+                    <button
+                        type="button"
+                        class="admin-button admin-button-secondary"
+                        data-inventory-adjust
+                    >
+                        Apply Adjustment
+                    </button>
+                </section>
+
+                <!-- ==========================================
+                     LOCATION
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <h3>
+                        Storage Location
+                    </h3>
+
+                    <div class="admin-form-grid">
+                        <label class="admin-field">
+                            <span>
+                                Warehouse
+                            </span>
+
+                            <input
+                                type="text"
+                                data-inventory-warehouse
+                            >
+                        </label>
+
+                        <label class="admin-field">
+                            <span>
+                                Bin Location
+                            </span>
+
+                            <input
+                                type="text"
+                                data-inventory-bin-location
+                            >
+                        </label>
+                    </div>
+
+                    <div class="admin-form-grid">
+                        <label class="admin-field">
+                            <span>
+                                Supplier
+                            </span>
+
+                            <input
+                                type="text"
+                                data-inventory-supplier
+                            >
+                        </label>
+
+                        <label class="admin-field">
+                            <span>
+                                Supplier SKU
+                            </span>
+
+                            <input
+                                type="text"
+                                data-inventory-supplier-sku
+                            >
+                        </label>
+                    </div>
+
+                    <label class="admin-field">
+                        <span>
+                            Restock Lead Time
+                        </span>
+
+                        <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            placeholder="Days"
+                            data-inventory-lead-time
+                        >
+                    </label>
+
+                    <button
+                        type="button"
+                        class="admin-button admin-button-secondary"
+                        data-inventory-save-location
+                    >
+                        Save Location
+                    </button>
+                </section>
+
+                <!-- ==========================================
+                     PRODUCT ADJUSTMENTS
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <h3>
+                        Product Adjustment History
+                    </h3>
+
+                    <div
+                        class="admin-order-timeline"
+                        data-inventory-product-adjustments
+                    >
+                        <div class="admin-dashboard-empty">
+                            No adjustments loaded.
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </aside>
+
+        <!-- ==================================================
+             BULK THRESHOLD MODAL
+        =================================================== -->
+
+        <div
+            class="admin-modal"
+            data-inventory-threshold-modal
+            aria-hidden="true"
+            hidden
+        >
+            <div
+                class="admin-modal-backdrop"
+                data-inventory-threshold-cancel
+            ></div>
+
+            <section
+                class="admin-modal-card"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="inventory-threshold-title"
+            >
+                <p class="admin-card-kicker">
+                    Bulk Inventory
+                </p>
+
+                <h2 id="inventory-threshold-title">
+                    Set Low-stock Threshold
+                </h2>
+
+                <p class="admin-muted">
+                    Apply one low-stock threshold to every selected product.
+                </p>
+
+                <label class="admin-field">
+                    <span>
+                        Threshold
+                    </span>
+
+                    <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value="5"
+                        data-inventory-bulk-threshold-value
+                    >
+                </label>
+
+                <div class="admin-modal-actions">
+                    <button
+                        type="button"
+                        class="admin-button admin-button-secondary"
+                        data-inventory-threshold-cancel
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        class="admin-button"
+                        data-inventory-threshold-confirm
+                    >
+                        Apply Threshold
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- ==================================================
+             CONFIRMATION MODAL
+        =================================================== -->
+
+        <div
+            class="admin-modal"
+            data-inventory-confirm-modal
+            aria-hidden="true"
+            hidden
+        >
+            <div
+                class="admin-modal-backdrop"
+                data-inventory-confirm-cancel
+            ></div>
+
+            <section
+                class="admin-modal-card"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="inventory-confirm-title"
+            >
+                <p class="admin-card-kicker">
+                    Inventory Action
+                </p>
+
+                <h2
+                    id="inventory-confirm-title"
+                    data-inventory-confirm-title
+                >
+                    Confirm Action
+                </h2>
+
+                <p
+                    class="admin-muted"
+                    data-inventory-confirm-message
+                >
+                    Are you sure?
+                </p>
+
+                <div class="admin-modal-actions">
+                    <button
+                        type="button"
+                        class="admin-button admin-button-secondary"
+                        data-inventory-confirm-cancel
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        class="admin-button admin-button-danger"
+                        data-inventory-confirm-submit
+                    >
+                        Confirm
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- ==================================================
+             LOADING
+        =================================================== -->
+
+        <div
+            class="admin-loading-overlay"
+            data-inventory-loading
+            aria-hidden="true"
+            hidden
+        >
+            <div class="admin-loading-card">
+                <div
+                    class="admin-spinner"
+                    aria-hidden="true"
+                ></div>
+
+                <p data-inventory-loading-message>
+                    Loading inventory…
+                </p>
+            </div>
+        </div>
+
+        <button
+            type="button"
+            class="admin-sidebar-backdrop"
+            data-admin-sidebar-backdrop
+            aria-label="Close navigation"
+            hidden
+        ></button>
+    </div>
+
+    <!-- =====================================================
+         FIREBASE V8
+    ====================================================== -->
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+
+    <!-- =====================================================
+         FIREBASE CONFIG
+    ====================================================== -->
+
+    <script src="/js/firebase-config.js"></script>
+
+    <!-- =====================================================
+         SERVICES
+    ====================================================== -->
+
+    <script src="/js/services/functions-service.js"></script>
+
+    <script src="/js/services/admin-operations-service.js"></script>
+
+    <!-- =====================================================
+         ADMIN
+    ====================================================== -->
+
+    <script src="/js/admin/admin-router.js"></script>
+
+    <script src="/js/admin/inventory-controller.js"></script>
+
+    <!-- =====================================================
+         BOOTSTRAP
+    ====================================================== -->
+
+    <script>
+        (function () {
+            "use strict";
+
+            function setAdminIdentity(
+                user
+            ) {
+                const nameElement =
+                    document.querySelector(
+                        "[data-admin-user-name]"
+                    );
+
+                const emailElement =
+                    document.querySelector(
+                        "[data-admin-user-email]"
+                    );
+
+                const avatarElement =
+                    document.querySelector(
+                        "[data-admin-avatar]"
+                    );
+
+                const displayName =
+                    user &&
+                    user.displayName
+                        ? user.displayName
+                        : "Administrator";
+
+                const email =
+                    user &&
+                    user.email
+                        ? user.email
+                        : "—";
+
+                if (
+                    nameElement
+                ) {
+                    nameElement.textContent =
+                        displayName;
+                }
+
+                if (
+                    emailElement
+                ) {
+                    emailElement.textContent =
+                        email;
+                }
+
+                if (
+                    avatarElement
+                ) {
+                    avatarElement.textContent =
+                        displayName
+                            .trim()
+                            .charAt(
+                                0
+                            )
+                            .toUpperCase() ||
+                        "A";
+                }
+            }
+
+            function bindSidebar() {
+                const toggle =
+                    document.querySelector(
+                        "[data-admin-menu-toggle]"
+                    );
+
+                const sidebar =
+                    document.querySelector(
+                        ".admin-sidebar"
+                    );
+
+                const backdrop =
+                    document.querySelector(
+                        "[data-admin-sidebar-backdrop]"
+                    );
+
+                if (
+                    !toggle ||
+                    !sidebar
+                ) {
+                    return;
+                }
+
+                function setOpen(
+                    open
+                ) {
+                    sidebar.classList.toggle(
+                        "is-open",
+                        open
+                    );
+
+                    document
+                        .documentElement
+                        .classList
+                        .toggle(
+                            "admin-menu-open",
+                            open
+                        );
+
+                    toggle.setAttribute(
+                        "aria-expanded",
+                        open
+                            ? "true"
+                            : "false"
+                    );
+
+                    if (
+                        backdrop
+                    ) {
+                        backdrop.hidden =
+                            !open;
+                    }
+                }
+
+                toggle.addEventListener(
+                    "click",
+                    function () {
+                        setOpen(
+                            !sidebar
+                                .classList
+                                .contains(
+                                    "is-open"
+                                )
+                        );
+                    }
+                );
+
+                if (
+                    backdrop
+                ) {
+                    backdrop.addEventListener(
+                        "click",
+                        function () {
+                            setOpen(
+                                false
+                            );
+                        }
+                    );
+                }
+            }
+
+            function bindSignOut() {
+                const button =
+                    document.querySelector(
+                        "[data-admin-signout]"
+                    );
+
+                if (
+                    !button
+                ) {
+                    return;
+                }
+
+                button.addEventListener(
+                    "click",
+                    async function () {
+                        button.disabled =
+                            true;
+
+                        try {
+                            await window.firebase
+                                .auth()
+                                .signOut();
+
+                            window.location.href =
+                                "/";
+                        } catch (
+                            error
+                        ) {
+                            console.error(
+                                "Unable to sign out.",
+                                error
+                            );
+
+                            button.disabled =
+                                false;
+                        }
+                    }
+                );
+            }
+
+            function watchAuthentication() {
+                if (
+                    !window.firebase ||
+                    typeof window.firebase.auth !==
+                        "function"
+                ) {
+                    setAdminIdentity(
+                        null
+                    );
+
+                    return;
+                }
+
+                window.firebase
+                    .auth()
+                    .onAuthStateChanged(
+                        function (
+                            user
+                        ) {
+                            setAdminIdentity(
+                                user
+                            );
+                        }
+                    );
+            }
+
+            async function startInventoryAdmin() {
+                bindSidebar();
+
+                bindSignOut();
+
+                watchAuthentication();
+
+                if (
+                    window.LEternelAdminRouter
+                ) {
+                    await window
+                        .LEternelAdminRouter
+                        .getAdminRouter()
+                        .init();
+                }
+
+                if (
+                    !window.LEternelInventoryController
+                ) {
+                    throw new Error(
+                        "Inventory controller is unavailable."
+                    );
+                }
+
+                const controller =
+                    window
+                        .LEternelInventoryController
+                        .getInventoryController();
+
+                await controller.init();
+
+                window.LEternelInventoryAdmin =
+                    controller;
+            }
+
+            if (
+                document.readyState ===
+                "loading"
+            ) {
+                document.addEventListener(
+                    "DOMContentLoaded",
+                    function () {
+                        startInventoryAdmin()
+                            .catch(
+                                function (
+                                    error
+                                ) {
+                                    console.error(
+                                        "Unable to initialize inventory admin.",
+                                        error
+                                    );
+                                }
+                            );
+                    },
+                    {
+                        once:
+                            true
+                    }
+                );
+            } else {
+                startInventoryAdmin()
+                    .catch(
+                        function (
+                            error
+                        ) {
+                            console.error(
+                                "Unable to initialize inventory admin.",
+                                error
+                            );
+                        }
+                    );
+            }
+        })();
+    </script>
+</body>
+</html>
