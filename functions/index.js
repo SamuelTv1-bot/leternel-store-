@@ -1003,3 +1003,40 @@ exports.__test =
                 migrationService
             })
     });
+
+    const adminModule =
+    require(
+        "./src/admin"
+    );
+
+const adminCallableExports =
+    adminModule
+        .createAdminCallableExports();
+
+exports.listAdministrators =
+    adminCallableExports
+        .listAdministrators;
+
+exports.getAdministrator =
+    adminCallableExports
+        .getAdministrator;
+
+exports.setAdministratorRole =
+    adminCallableExports
+        .setAdministratorRole;
+
+exports.removeAdministratorRole =
+    adminCallableExports
+        .removeAdministratorRole;
+
+exports.grantAdministratorPermissions =
+    adminCallableExports
+        .grantAdministratorPermissions;
+
+exports.revokeAdministratorPermissions =
+    adminCallableExports
+        .revokeAdministratorPermissions;
+
+exports.patchAdministratorClaims =
+    adminCallableExports
+        .patchAdministratorClaims;
