@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="robots"
+        content="noindex, nofollow"
+    >
+
+    <title>
+        Administrators — L'ÉTERNEL Store
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/css/main.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="/css/admin.css"
+    >
+</head>
+
+<body>
+    <div
+        class="admin-shell"
+        data-admin-shell
+        data-admin-administrators
+        data-active-admin-route="administrators"
+    >
+        <!-- ==================================================
+             SIDEBAR
+        =================================================== -->
+
+        <aside
+            class="admin-sidebar"
+            data-admin-sidebar
+            aria-label="Administrator navigation"
+        >
+            <div class="admin-sidebar-header">
+                <a
+                    href="/admin/"
+                    class="admin-brand"
+                    aria-label="L'ÉTERNEL admin dashboard"
+                >
+                    <span class="admin-brand-name">
+                        L'ÉTERNEL
+                    </span>
+
+                    <span class="admin-brand-label">
+                        Administration
+                    </span>
+                </a>
+            </div>
+
+            <nav
+                class="admin-navigation"
+                data-admin-nav
+                aria-label="Admin"
+            >
+                <a
+                    href="/admin/"
+                    data-admin-route="dashboard"
+                >
+                    <span>
+                        Dashboard
+                    </span>
+                </a>
+
+                <a
+                    href="/admin/products.html"
+                    data-admin-route="products"
+                >
+                    <span>
+                        Products
+                    </span>
+                </a>
+
+                <a
+                    href="/admin/orders.html"
+                    data-admin-route="orders"
+                >
+                    <span>
+                        Orders
+                    </span>
+                </a>
+
+                <a
+                    href="/admin/customers.html"
+                    data-admin-route="customers"
+                >
+                    <span>
+                        Customers
+                    </span>
+                </a>
+
+                <a
+                    href="/admin/inventory.html"
+                    data-admin-route="inventory"
+                >
+                    <span>
+                        Inventory
+                    </span>
+                </a>
+
+                <a
+                    href="/admin/operations.html"
+                    data-admin-route="operations"
+                >
+                    <span>
+                        Operations
+                    </span>
+                </a>
+
+                <a
+                    href="/admin/administrators.html"
+                    data-admin-route="administrators"
+                    aria-current="page"
+                >
+                    <span>
+                        Administrators
+                    </span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <a
+                    href="/"
+                    class="admin-sidebar-store-link"
+                >
+                    View Store
+                </a>
+
+                <button
+                    type="button"
+                    class="admin-sidebar-signout"
+                    data-admin-signout
+                >
+                    Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- ==================================================
+             MOBILE BACKDROP
+        =================================================== -->
+
+        <button
+            type="button"
+            class="admin-sidebar-backdrop"
+            data-admin-sidebar-backdrop
+            aria-label="Close navigation"
+            hidden
+        ></button>
+
+        <!-- ==================================================
+             MAIN
+        =================================================== -->
+
+        <div class="admin-main">
+            <!-- ==============================================
+                 TOP BAR
+            =============================================== -->
+
+            <header class="admin-topbar">
+                <div class="admin-topbar-left">
+                    <button
+                        type="button"
+                        class="admin-menu-toggle"
+                        data-admin-menu-toggle
+                        aria-label="Open navigation"
+                        aria-expanded="false"
+                    >
+                        <span></span>
+                        <span></span>
+                    </button>
+
+                    <div>
+                        <p class="admin-eyebrow">
+                            Access Control
+                        </p>
+
+                        <h1>
+                            Administrators
+                        </h1>
+                    </div>
+                </div>
+
+                <div class="admin-user">
+                    <div
+                        class="admin-user-avatar"
+                        data-admin-avatar
+                        aria-hidden="true"
+                    >
+                        A
+                    </div>
+
+                    <div class="admin-user-copy">
+                        <strong
+                            data-admin-user-name
+                        >
+                            Administrator
+                        </strong>
+
+                        <span
+                            data-admin-user-email
+                        >
+                            —
+                        </span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ==============================================
+                 CONTENT
+            =============================================== -->
+
+            <main
+                class="admin-content"
+                data-admin-content
+            >
+                <!-- ==========================================
+                     PAGE HEADER
+                =========================================== -->
+
+                <section class="admin-page-heading">
+                    <div>
+                        <p class="admin-eyebrow">
+                            Team Access
+                        </p>
+
+                        <h2>
+                            Administrator Management
+                        </h2>
+
+                        <p>
+                            Review administrator accounts,
+                            assign roles, and control privileged
+                            access to L'ÉTERNEL Store.
+                        </p>
+                    </div>
+
+                    <div class="admin-page-actions">
+                        <button
+                            type="button"
+                            class="admin-secondary-button"
+                            data-administrators-refresh
+                        >
+                            Refresh
+                        </button>
+
+                        <button
+                            type="button"
+                            class="admin-primary-button"
+                            data-administrators-add
+                        >
+                            Add Administrator
+                        </button>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     STATUS
+                =========================================== -->
+
+                <div
+                    class="admin-status"
+                    data-administrators-status
+                    role="status"
+                    aria-live="polite"
+                ></div>
+
+                <!-- ==========================================
+                     METRICS
+                =========================================== -->
+
+                <section
+                    class="admin-metrics-grid"
+                    aria-label="Administrator metrics"
+                >
+                    <article class="admin-metric-card">
+                        <span>
+                            Total Administrators
+                        </span>
+
+                        <strong
+                            data-administrators-total
+                        >
+                            0
+                        </strong>
+                    </article>
+
+                    <article class="admin-metric-card">
+                        <span>
+                            Owners
+                        </span>
+
+                        <strong
+                            data-administrators-owners
+                        >
+                            0
+                        </strong>
+                    </article>
+
+                    <article class="admin-metric-card">
+                        <span>
+                            Active
+                        </span>
+
+                        <strong
+                            data-administrators-active
+                        >
+                            0
+                        </strong>
+                    </article>
+
+                    <article class="admin-metric-card">
+                        <span>
+                            Disabled
+                        </span>
+
+                        <strong
+                            data-administrators-disabled
+                        >
+                            0
+                        </strong>
+                    </article>
+                </section>
+
+                <!-- ==========================================
+                     FILTERS
+                =========================================== -->
+
+                <section class="admin-panel">
+                    <div class="admin-filter-grid">
+                        <label class="admin-field">
+                            <span>
+                                Search
+                            </span>
+
+                            <input
+                                type="search"
+                                placeholder="Name, email, UID, role…"
+                                autocomplete="off"
+                                data-administrators-search
+                            >
+                        </label>
+
+                        <label class="admin-field">
+                            <span>
+                                Role
+                            </span>
+
+                            <select
+                                data-administrators-role-filter
+                            >
+                                <option value="">
+                                    All roles
+                                </option>
+
+                                <option value="owner">
+                                    Owner
+                                </option>
+
+                                <option value="super-admin">
+                                    Super Admin
+                                </option>
+
+                                <option value="administrator">
+                                    Administrator
+                                </option>
+
+                                <option value="admin">
+                                    Admin
+                                </option>
+
+                                <option value="catalogue">
+                                    Catalogue
+                                </option>
+
+                                <option value="fulfilment">
+                                    Fulfilment
+                                </option>
+
+                                <option value="support">
+                                    Support
+                                </option>
+
+                                <option value="analyst">
+                                    Analyst
+                                </option>
+                            </select>
+                        </label>
+
+                        <label class="admin-field">
+                            <span>
+                                Status
+                            </span>
+
+                            <select
+                                data-administrators-status-filter
+                            >
+                                <option value="">
+                                    All statuses
+                                </option>
+
+                                <option value="active">
+                                    Active
+                                </option>
+
+                                <option value="disabled">
+                                    Disabled
+                                </option>
+                            </select>
+                        </label>
+
+                        <label class="admin-field">
+                            <span>
+                                Sort
+                            </span>
+
+                            <select
+                                data-administrators-sort
+                            >
+                                <option value="email-asc">
+                                    Email A–Z
+                                </option>
+
+                                <option value="email-desc">
+                                    Email Z–A
+                                </option>
+
+                                <option value="displayName-asc">
+                                    Name A–Z
+                                </option>
+
+                                <option value="displayName-desc">
+                                    Name Z–A
+                                </option>
+
+                                <option value="role-asc">
+                                    Role A–Z
+                                </option>
+
+                                <option value="lastSignInTime-desc">
+                                    Latest Sign In
+                                </option>
+
+                                <option value="creationTime-desc">
+                                    Newest Account
+                                </option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="admin-filter-actions">
+                        <button
+                            type="button"
+                            class="admin-text-button"
+                            data-administrators-clear-filters
+                        >
+                            Clear Filters
+                        </button>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     TABLE
+                =========================================== -->
+
+                <section class="admin-panel">
+                    <div class="admin-panel-header">
+                        <div>
+                            <p class="admin-eyebrow">
+                                Access Directory
+                            </p>
+
+                            <h3>
+                                Administrator Accounts
+                            </h3>
+                        </div>
+
+                        <span>
+                            <strong
+                                data-administrators-visible-count
+                            >
+                                0
+                            </strong>
+                            visible
+                        </span>
+                    </div>
+
+                    <div
+                        class="admin-table-scroll"
+                        data-administrators-table
+                    >
+                        <table class="admin-operation-table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Administrator
+                                    </th>
+
+                                    <th>
+                                        Role
+                                    </th>
+
+                                    <th>
+                                        Permissions
+                                    </th>
+
+                                    <th>
+                                        Status
+                                    </th>
+
+                                    <th>
+                                        Last Sign In
+                                    </th>
+
+                                    <th>
+                                        Created
+                                    </th>
+
+                                    <th>
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr>
+                                    <td colspan="7">
+                                        Loading administrator accounts…
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="admin-pagination">
+                        <button
+                            type="button"
+                            class="admin-secondary-button"
+                            data-administrators-previous
+                            disabled
+                        >
+                            Previous
+                        </button>
+
+                        <span
+                            data-administrators-page-label
+                        >
+                            Page 1 of 1
+                        </span>
+
+                        <button
+                            type="button"
+                            class="admin-secondary-button"
+                            data-administrators-next
+                            disabled
+                        >
+                            Next
+                        </button>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     PERMISSION REFERENCE
+                =========================================== -->
+
+                <section class="admin-panel">
+                    <div class="admin-panel-header">
+                        <div>
+                            <p class="admin-eyebrow">
+                                Role Reference
+                            </p>
+
+                            <h3>
+                                Permission Model
+                            </h3>
+                        </div>
+                    </div>
+
+                    <div class="admin-detail-grid">
+                        <article class="admin-detail-card">
+                            <strong>
+                                Owner
+                            </strong>
+
+                            <p>
+                                Full administrative access,
+                                including assigning privileged
+                                owner and super-admin roles.
+                            </p>
+                        </article>
+
+                        <article class="admin-detail-card">
+                            <strong>
+                                Administrator
+                            </strong>
+
+                            <p>
+                                Broad operational access,
+                                including administrator and
+                                customer management.
+                            </p>
+                        </article>
+
+                        <article class="admin-detail-card">
+                            <strong>
+                                Catalogue
+                            </strong>
+
+                            <p>
+                                Product catalogue and inventory
+                                management.
+                            </p>
+                        </article>
+
+                        <article class="admin-detail-card">
+                            <strong>
+                                Fulfilment
+                            </strong>
+
+                            <p>
+                                Order operations and inventory
+                                visibility.
+                            </p>
+                        </article>
+
+                        <article class="admin-detail-card">
+                            <strong>
+                                Support
+                            </strong>
+
+                            <p>
+                                Customer and order support
+                                workflows.
+                            </p>
+                        </article>
+
+                        <article class="admin-detail-card">
+                            <strong>
+                                Analyst
+                            </strong>
+
+                            <p>
+                                Read-only operational reporting
+                                access.
+                            </p>
+                        </article>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- ==================================================
+             ADMINISTRATOR DRAWER
+        =================================================== -->
+
+        <aside
+            class="admin-editor-drawer"
+            data-administrators-drawer
+            aria-hidden="true"
+        >
+            <div class="admin-editor-header">
+                <div>
+                    <p class="admin-eyebrow">
+                        Administrator
+                    </p>
+
+                    <h2
+                        data-administrator-drawer-name
+                    >
+                        Manage Access
+                    </h2>
+                </div>
+
+                <button
+                    type="button"
+                    class="admin-editor-close"
+                    data-administrators-drawer-close
+                    aria-label="Close administrator editor"
+                >
+                    ×
+                </button>
+            </div>
+
+            <div class="admin-editor-body">
+                <!-- ==========================================
+                     IDENTITY
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <div class="admin-profile-summary">
+                        <div
+                            class="admin-user-avatar"
+                            data-administrator-avatar
+                        >
+                            A
+                        </div>
+
+                        <div>
+                            <strong
+                                data-administrator-name
+                            >
+                                Administrator
+                            </strong>
+
+                            <p
+                                data-administrator-email
+                            >
+                                —
+                            </p>
+
+                            <small
+                                data-administrator-uid
+                            >
+                                —
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="admin-detail-grid">
+                        <div>
+                            <span>
+                                Status
+                            </span>
+
+                            <strong
+                                data-administrator-status
+                            >
+                                —
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>
+                                Email Verified
+                            </span>
+
+                            <strong
+                                data-administrator-email-verified
+                            >
+                                —
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>
+                                Created
+                            </span>
+
+                            <strong
+                                data-administrator-created
+                            >
+                                —
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>
+                                Last Sign In
+                            </span>
+
+                            <strong
+                                data-administrator-last-signin
+                            >
+                                —
+                            </strong>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     ROLE
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <div class="admin-editor-section-heading">
+                        <div>
+                            <p class="admin-eyebrow">
+                                Role
+                            </p>
+
+                            <h3>
+                                Administrator Role
+                            </h3>
+                        </div>
+                    </div>
+
+                    <input
+                        type="hidden"
+                        data-administrator-id
+                    >
+
+                    <label class="admin-field">
+                        <span>
+                            Role
+                        </span>
+
+                        <select
+                            data-administrator-role
+                        >
+                            <option value="admin">
+                                Admin
+                            </option>
+
+                            <option value="administrator">
+                                Administrator
+                            </option>
+
+                            <option value="owner">
+                                Owner
+                            </option>
+
+                            <option value="super-admin">
+                                Super Admin
+                            </option>
+
+                            <option value="catalogue">
+                                Catalogue
+                            </option>
+
+                            <option value="fulfilment">
+                                Fulfilment
+                            </option>
+
+                            <option value="support">
+                                Support
+                            </option>
+
+                            <option value="analyst">
+                                Analyst
+                            </option>
+                        </select>
+                    </label>
+
+                    <label class="admin-field">
+                        <span>
+                            Reason
+                        </span>
+
+                        <textarea
+                            rows="3"
+                            placeholder="Why is this role being changed?"
+                            data-administrator-role-reason
+                        ></textarea>
+                    </label>
+
+                    <label class="admin-checkbox-field">
+                        <input
+                            type="checkbox"
+                            data-administrator-replace-permissions
+                        >
+
+                        <span>
+                            Replace custom permissions with the
+                            selected role defaults.
+                        </span>
+                    </label>
+
+                    <button
+                        type="button"
+                        class="admin-primary-button"
+                        data-administrator-save-role
+                    >
+                        Save Role
+                    </button>
+                </section>
+
+                <!-- ==========================================
+                     CURRENT PERMISSIONS
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <div class="admin-editor-section-heading">
+                        <div>
+                            <p class="admin-eyebrow">
+                                Current Access
+                            </p>
+
+                            <h3>
+                                Permissions
+                            </h3>
+                        </div>
+                    </div>
+
+                    <div
+                        class="admin-tag-list"
+                        data-administrator-permissions
+                    >
+                        <span class="admin-tag">
+                            —
+                        </span>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     GRANT PERMISSIONS
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <div class="admin-editor-section-heading">
+                        <div>
+                            <p class="admin-eyebrow">
+                                Grant
+                            </p>
+
+                            <h3>
+                                Add Permissions
+                            </h3>
+                        </div>
+                    </div>
+
+                    <label class="admin-field">
+                        <span>
+                            Permissions
+                        </span>
+
+                        <textarea
+                            rows="4"
+                            placeholder="orders.refund, customers.delete"
+                            data-administrator-grant-permissions
+                        ></textarea>
+
+                        <small>
+                            Separate permissions with commas or spaces.
+                        </small>
+                    </label>
+
+                    <label class="admin-field">
+                        <span>
+                            Reason
+                        </span>
+
+                        <textarea
+                            rows="2"
+                            placeholder="Reason for granting access"
+                            data-administrator-grant-reason
+                        ></textarea>
+                    </label>
+
+                    <button
+                        type="button"
+                        class="admin-secondary-button"
+                        data-administrator-grant
+                    >
+                        Grant Permissions
+                    </button>
+                </section>
+
+                <!-- ==========================================
+                     REVOKE PERMISSIONS
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <div class="admin-editor-section-heading">
+                        <div>
+                            <p class="admin-eyebrow">
+                                Revoke
+                            </p>
+
+                            <h3>
+                                Remove Permissions
+                            </h3>
+                        </div>
+                    </div>
+
+                    <label class="admin-field">
+                        <span>
+                            Permissions
+                        </span>
+
+                        <textarea
+                            rows="4"
+                            placeholder="orders.refund"
+                            data-administrator-revoke-permissions
+                        ></textarea>
+                    </label>
+
+                    <label class="admin-field">
+                        <span>
+                            Reason
+                        </span>
+
+                        <textarea
+                            rows="2"
+                            placeholder="Reason for removing access"
+                            data-administrator-revoke-reason
+                        ></textarea>
+                    </label>
+
+                    <button
+                        type="button"
+                        class="admin-secondary-button"
+                        data-administrator-revoke
+                    >
+                        Revoke Permissions
+                    </button>
+                </section>
+
+                <!-- ==========================================
+                     DANGER
+                =========================================== -->
+
+                <section class="admin-editor-section admin-danger-zone">
+                    <div class="admin-editor-section-heading">
+                        <div>
+                            <p class="admin-eyebrow">
+                                Danger Zone
+                            </p>
+
+                            <h3>
+                                Remove Administrator Access
+                            </h3>
+                        </div>
+                    </div>
+
+                    <p>
+                        Removes administrator role claims from
+                        this account. The final owner or
+                        super-admin cannot be removed.
+                    </p>
+
+                    <label class="admin-field">
+                        <span>
+                            Reason
+                        </span>
+
+                        <textarea
+                            rows="3"
+                            placeholder="Why is administrator access being removed?"
+                            data-administrator-remove-reason
+                        ></textarea>
+                    </label>
+
+                    <label class="admin-checkbox-field">
+                        <input
+                            type="checkbox"
+                            data-administrator-preserve-permissions
+                        >
+
+                        <span>
+                            Preserve custom permission claims
+                            after removing the administrator role.
+                        </span>
+                    </label>
+
+                    <button
+                        type="button"
+                        class="admin-danger-button"
+                        data-administrator-remove
+                    >
+                        Remove Administrator Access
+                    </button>
+                </section>
+            </div>
+        </aside>
+
+        <!-- ==================================================
+             ADD ADMINISTRATOR MODAL
+        =================================================== -->
+
+        <section
+            class="admin-modal"
+            data-administrators-add-modal
+            aria-hidden="true"
+            hidden
+        >
+            <button
+                type="button"
+                class="admin-modal-backdrop"
+                data-administrators-add-cancel
+                aria-label="Close modal"
+            ></button>
+
+            <div
+                class="admin-modal-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="add-administrator-title"
+            >
+                <div class="admin-modal-header">
+                    <div>
+                        <p class="admin-eyebrow">
+                            New Access
+                        </p>
+
+                        <h2 id="add-administrator-title">
+                            Add Administrator
+                        </h2>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="admin-editor-close"
+                        data-administrators-add-cancel
+                        aria-label="Close"
+                    >
+                        ×
+                    </button>
+                </div>
+
+                <div class="admin-modal-body">
+                    <p>
+                        Enter the Firebase Authentication UID
+                        of an existing L'ÉTERNEL user.
+                    </p>
+
+                    <label class="admin-field">
+                        <span>
+                            User UID
+                        </span>
+
+                        <input
+                            type="text"
+                            autocomplete="off"
+                            placeholder="Firebase Authentication UID"
+                            data-administrators-add-uid
+                        >
+                    </label>
+
+                    <label class="admin-field">
+                        <span>
+                            Role
+                        </span>
+
+                        <select
+                            data-administrators-add-role
+                        >
+                            <option value="admin">
+                                Admin
+                            </option>
+
+                            <option value="administrator">
+                                Administrator
+                            </option>
+
+                            <option value="catalogue">
+                                Catalogue
+                            </option>
+
+                            <option value="fulfilment">
+                                Fulfilment
+                            </option>
+
+                            <option value="support">
+                                Support
+                            </option>
+
+                            <option value="analyst">
+                                Analyst
+                            </option>
+
+                            <option value="owner">
+                                Owner
+                            </option>
+
+                            <option value="super-admin">
+                                Super Admin
+                            </option>
+                        </select>
+                    </label>
+
+                    <label class="admin-field">
+                        <span>
+                            Extra Permissions
+                        </span>
+
+                        <textarea
+                            rows="3"
+                            placeholder="Optional additional permissions"
+                            data-administrators-add-permissions
+                        ></textarea>
+                    </label>
+
+                    <label class="admin-field">
+                        <span>
+                            Reason
+                        </span>
+
+                        <textarea
+                            rows="3"
+                            placeholder="Reason for granting administrator access"
+                            data-administrators-add-reason
+                        ></textarea>
+                    </label>
+
+                    <label class="admin-checkbox-field">
+                        <input
+                            type="checkbox"
+                            data-administrators-add-replace-permissions
+                        >
+
+                        <span>
+                            Replace any existing custom permissions
+                            with the selected role defaults.
+                        </span>
+                    </label>
+                </div>
+
+                <div class="admin-modal-footer">
+                    <button
+                        type="button"
+                        class="admin-secondary-button"
+                        data-administrators-add-cancel
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        class="admin-primary-button"
+                        data-administrators-add-confirm
+                    >
+                        Add Administrator
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================
+             CONFIRMATION MODAL
+        =================================================== -->
+
+        <section
+            class="admin-modal"
+            data-administrators-confirm-modal
+            aria-hidden="true"
+            hidden
+        >
+            <button
+                type="button"
+                class="admin-modal-backdrop"
+                data-administrators-confirm-cancel
+                aria-label="Cancel"
+            ></button>
+
+            <div
+                class="admin-modal-dialog"
+                role="dialog"
+                aria-modal="true"
+            >
+                <div class="admin-modal-header">
+                    <div>
+                        <p class="admin-eyebrow">
+                            Confirmation
+                        </p>
+
+                        <h2
+                            data-administrators-confirm-title
+                        >
+                            Confirm Action
+                        </h2>
+                    </div>
+                </div>
+
+                <div class="admin-modal-body">
+                    <p
+                        data-administrators-confirm-message
+                    >
+                        Are you sure?
+                    </p>
+                </div>
+
+                <div class="admin-modal-footer">
+                    <button
+                        type="button"
+                        class="admin-secondary-button"
+                        data-administrators-confirm-cancel
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        class="admin-danger-button"
+                        data-administrators-confirm-submit
+                    >
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================
+             LOADING
+        =================================================== -->
+
+        <div
+            class="admin-loading-overlay"
+            data-administrators-loading
+            aria-hidden="true"
+            hidden
+        >
+            <div class="admin-loading-card">
+                <span
+                    class="admin-loading-spinner"
+                    aria-hidden="true"
+                ></span>
+
+                <p
+                    data-administrators-loading-message
+                >
+                    Loading…
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================
+         FIREBASE v8
+    ======================================================= -->
+
+    <script
+        src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"
+    ></script>
+
+    <script
+        src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"
+    ></script>
+
+    <script
+        src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"
+    ></script>
+
+    <script
+        src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"
+    ></script>
+
+    <!-- ======================================================
+         L'ÉTERNEL SERVICES
+    ======================================================= -->
+
+    <script src="/js/firebase-config.js"></script>
+
+    <script
+        src="/js/services/functions-service.js"
+    ></script>
+
+    <script
+        src="/js/services/admin-auth-service.js"
+    ></script>
+
+    <!-- ======================================================
+         ADMIN SYSTEM
+    ======================================================= -->
+
+    <script
+        src="/js/admin/admin-router.js"
+    ></script>
+
+    <script
+        src="/js/admin/admin-auth-guard.js"
+    ></script>
+
+    <script
+        src="/js/admin/administrators-controller.js"
+    ></script>
+
+    <script
+        src="/js/admin/admin-shell.js"
+    ></script>
+
+    <!-- ======================================================
+         BOOTSTRAP
+    ======================================================= -->
+
+    <script>
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+                window.LEternelAdminShell
+                    .bootstrap()
+                    .catch(
+                        function (
+                            error
+                        ) {
+                            console.error(
+                                "Unable to initialize administrator management.",
+                                error
+                            );
+                        }
+                    );
+            },
+            {
+                once:
+                    true
+            }
+        );
+    </script>
+</body>
+</html>

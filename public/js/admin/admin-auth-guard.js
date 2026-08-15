@@ -2,16 +2,14 @@
 
 /* ==========================================================
    L'ÉTERNEL STORE
-   ADMIN AUTHORIZATION GUARD
+   ADMIN AUTH GUARD
 
    Responsibilities:
-   - Resolve Firebase Authentication state
-   - Validate administrator custom claims
-   - Support role-based and permission-based access
-   - Preserve intended redirect destinations
-   - Prevent redirect loops
-   - Refresh stale ID token claims
-   - Expose reusable page and action authorization checks
+   - Resolve current Firebase user
+   - Read refreshed custom claims
+   - Enforce administrator roles and permissions
+   - Guard individual routes
+   - Redirect unauthorized users safely
 ========================================================== */
 
 (function (global) {
@@ -28,108 +26,31 @@
     const DEFAULT_ADMIN_PATH =
         "/admin/";
 
-    const DEFAULT_AUTH_TIMEOUT_MS =
+    const DEFAULT_TIMEOUT =
         15000;
 
-    const DEFAULT_CLAIMS_MAX_AGE_MS =
+    const DEFAULT_CLAIM_MAX_AGE =
         5 * 60 * 1000;
 
-    const DEFAULT_REDIRECT_PARAMETER =
-        "redirect";
-
-    const DEFAULT_REASON_PARAMETER =
-        "reason";
-
-    const DEFAULT_ADMIN_ROLES =
+    const ADMIN_ROLES =
         Object.freeze([
             "admin",
             "administrator",
             "owner",
+            "super-admin",
+            "catalogue",
+            "fulfilment",
+            "support",
+            "analyst"
+        ]);
+
+    const PRIVILEGED_ROLES =
+        Object.freeze([
+            "owner",
             "super-admin"
         ]);
 
-    const DEFAULT_ADMIN_PERMISSIONS =
-        Object.freeze([
-            "admin.access"
-        ]);
-
-    const DEFAULT_ROLE_PERMISSIONS =
-        Object.freeze({
-            owner: [
-                "*"
-            ],
-
-            "super-admin": [
-                "*"
-            ],
-
-            administrator: [
-                "admin.access",
-                "dashboard.read",
-                "products.read",
-                "products.write",
-                "orders.read",
-                "orders.write",
-                "orders.refund",
-                "customers.read",
-                "customers.write",
-                "inventory.read",
-                "inventory.write",
-                "operations.read",
-                "operations.write"
-            ],
-
-            admin: [
-                "admin.access",
-                "dashboard.read",
-                "products.read",
-                "products.write",
-                "orders.read",
-                "orders.write",
-                "customers.read",
-                "customers.write",
-                "inventory.read",
-                "inventory.write",
-                "operations.read"
-            ],
-
-            catalogue: [
-                "admin.access",
-                "dashboard.read",
-                "products.read",
-                "products.write",
-                "inventory.read",
-                "inventory.write"
-            ],
-
-            fulfilment: [
-                "admin.access",
-                "dashboard.read",
-                "orders.read",
-                "orders.write",
-                "inventory.read"
-            ],
-
-            support: [
-                "admin.access",
-                "dashboard.read",
-                "orders.read",
-                "customers.read",
-                "customers.write"
-            ],
-
-            analyst: [
-                "admin.access",
-                "dashboard.read",
-                "products.read",
-                "orders.read",
-                "customers.read",
-                "inventory.read",
-                "operations.read"
-            ]
-        });
-
-    const DEFAULT_ROUTE_PERMISSIONS =
+    const ROUTE_PERMISSIONS =
         Object.freeze({
             dashboard:
                 "dashboard.read",
@@ -147,7 +68,107 @@
                 "inventory.read",
 
             operations:
+                "operations.read",
+
+            administrators:
+                "admins.read"
+        });
+
+    const ROLE_PERMISSIONS =
+        Object.freeze({
+            owner: [
+                "*"
+            ],
+
+            "super-admin": [
+                "*"
+            ],
+
+            administrator: [
+                "admin.access",
+                "dashboard.read",
+
+                "products.read",
+                "products.write",
+
+                "orders.read",
+                "orders.write",
+                "orders.refund",
+
+                "customers.read",
+                "customers.write",
+                "customers.delete",
+
+                "inventory.read",
+                "inventory.write",
+
+                "operations.read",
+                "operations.write",
+
+                "admins.read",
+                "admins.write"
+            ],
+
+            admin: [
+                "admin.access",
+                "dashboard.read",
+
+                "products.read",
+                "products.write",
+
+                "orders.read",
+                "orders.write",
+
+                "customers.read",
+                "customers.write",
+
+                "inventory.read",
+                "inventory.write",
+
                 "operations.read"
+            ],
+
+            catalogue: [
+                "admin.access",
+                "dashboard.read",
+
+                "products.read",
+                "products.write",
+
+                "inventory.read",
+                "inventory.write"
+            ],
+
+            fulfilment: [
+                "admin.access",
+                "dashboard.read",
+
+                "orders.read",
+                "orders.write",
+
+                "inventory.read"
+            ],
+
+            support: [
+                "admin.access",
+                "dashboard.read",
+
+                "orders.read",
+
+                "customers.read",
+                "customers.write"
+            ],
+
+            analyst: [
+                "admin.access",
+                "dashboard.read",
+
+                "products.read",
+                "orders.read",
+                "customers.read",
+                "inventory.read",
+                "operations.read"
+            ]
         });
 
     /* ======================================================
@@ -170,7 +191,7 @@
 
             this.code =
                 code ||
-                "admin-auth/unknown";
+                "admin-auth-guard/unknown";
 
             const settings =
                 options ||
@@ -187,1218 +208,441 @@
     }
 
     /* ======================================================
-       GUARD FACTORY
+       FACTORY
     ====================================================== */
 
-    function createAdminAuthGuard(options) {
+    function createAdminAuthGuard(
+        options
+    ) {
         const settings =
             normalizeOptions(
                 options
             );
 
-        const windowObject =
-            settings.window ||
-            global;
-
-        const documentObject =
-            settings.document ||
-            global.document ||
-            null;
-
         const auth =
             settings.auth ||
-            resolveAuth();
+            resolveFirebaseAuth();
 
-        let destroyed =
-            false;
-
-        let initialized =
-            false;
-
-        let authUnsubscribe =
-            null;
-
-        let authPromise =
-            null;
-
-        let currentUser =
-            null;
-
-        let currentTokenResult =
-            null;
-
-        let currentClaims =
-            {};
-
-        let currentRoles =
-            [];
-
-        let currentPermissions =
-            [];
-
-        let claimsLoadedAt =
-            null;
-
-        let lastDecision =
-            null;
-
-        /* ==================================================
-           LIFECYCLE
-        ================================================== */
-
-        async function init() {
-            if (
-                initialized
-            ) {
-                return guard;
-            }
-
-            assertActive();
-
-            if (
-                !auth ||
-                typeof auth.onAuthStateChanged !==
-                    "function"
-            ) {
-                throw new AdminAuthGuardError(
-                    "admin-auth/auth-unavailable",
-                    "Firebase Authentication is unavailable."
-                );
-            }
-
-            initialized =
-                true;
-
-            await waitForAuthState();
-
-            return guard;
-        }
-
-        function destroy() {
-            if (
-                destroyed
-            ) {
-                return;
-            }
-
-            destroyed =
-                true;
-
-            if (
-                typeof authUnsubscribe ===
-                    "function"
-            ) {
-                try {
-                    authUnsubscribe();
-                } catch (
-                    error
-                ) {
-                    reportError(
-                        error
-                    );
-                }
-            }
-
-            authUnsubscribe =
-                null;
-
-            authPromise =
-                null;
-
-            currentUser =
-                null;
-
-            currentTokenResult =
-                null;
-
-            currentClaims =
-                {};
-
-            currentRoles =
-                [];
-
-            currentPermissions =
-                [];
-
-            claimsLoadedAt =
-                null;
-
-            lastDecision =
-                null;
-
-            initialized =
-                false;
-        }
-
-        function assertActive() {
-            if (
-                destroyed
-            ) {
-                throw new AdminAuthGuardError(
-                    "admin-auth/destroyed",
-                    "Administrator authorization guard has been destroyed."
-                );
-            }
-        }
-
-        /* ==================================================
-           AUTH STATE
-        ================================================== */
-
-        function waitForAuthState() {
-            assertActive();
-
-            if (
-                authPromise
-            ) {
-                return authPromise;
-            }
-
-            authPromise =
-                new Promise(
-                    function (
-                        resolve,
-                        reject
-                    ) {
-                        let settled =
-                            false;
-
-                        const timeoutId =
-                            windowObject.setTimeout(
-                                function () {
-                                    if (
-                                        settled
-                                    ) {
-                                        return;
-                                    }
-
-                                    settled =
-                                        true;
-
-                                    reject(
-                                        new AdminAuthGuardError(
-                                            "admin-auth/timeout",
-                                            "Authentication verification timed out."
-                                        )
-                                    );
-                                },
-                                settings.authTimeoutMs
-                            );
-
-                        authUnsubscribe =
-                            auth.onAuthStateChanged(
-                                async function (
-                                    user
-                                ) {
-                                    if (
-                                        settled
-                                    ) {
-                                        return;
-                                    }
-
-                                    try {
-                                        currentUser =
-                                            user ||
-                                            null;
-
-                                        if (
-                                            currentUser
-                                        ) {
-                                            await refreshClaims(
-                                                settings.forceTokenRefreshOnInit
-                                            );
-                                        } else {
-                                            clearClaims();
-                                        }
-
-                                        settled =
-                                            true;
-
-                                        windowObject.clearTimeout(
-                                            timeoutId
-                                        );
-
-                                        resolve(
-                                            currentUser
-                                        );
-                                    } catch (
-                                        error
-                                    ) {
-                                        settled =
-                                            true;
-
-                                        windowObject.clearTimeout(
-                                            timeoutId
-                                        );
-
-                                        reject(
-                                            normalizeAdminAuthError(
-                                                error,
-                                                "admin-auth/token-failed",
-                                                "Unable to verify administrator token."
-                                            )
-                                        );
-                                    }
-                                },
-                                function (
-                                    error
-                                ) {
-                                    if (
-                                        settled
-                                    ) {
-                                        return;
-                                    }
-
-                                    settled =
-                                        true;
-
-                                    windowObject.clearTimeout(
-                                        timeoutId
-                                    );
-
-                                    reject(
-                                        normalizeAdminAuthError(
-                                            error,
-                                            "admin-auth/listener-failed",
-                                            "Authentication listener failed."
-                                        )
-                                    );
-                                }
-                            );
-                    }
-                );
-
-            return authPromise;
-        }
-
-        async function refreshClaims(
-            forceRefresh
+        if (
+            !auth
         ) {
-            assertActive();
-
-            if (
-                !currentUser ||
-                typeof currentUser.getIdTokenResult !==
-                    "function"
-            ) {
-                clearClaims();
-
-                return {};
-            }
-
-            const shouldForce =
-                forceRefresh ===
-                    true ||
-                areClaimsStale();
-
-            currentTokenResult =
-                await currentUser
-                    .getIdTokenResult(
-                        shouldForce
-                    );
-
-            currentClaims =
-                currentTokenResult &&
-                currentTokenResult.claims
-                    ? cloneValue(
-                          currentTokenResult.claims
-                      )
-                    : {};
-
-            currentRoles =
-                extractRoles(
-                    currentClaims
-                );
-
-            currentPermissions =
-                extractPermissions(
-                    currentClaims,
-                    currentRoles,
-                    settings.rolePermissions
-                );
-
-            claimsLoadedAt =
-                Date.now();
-
-            return cloneValue(
-                currentClaims
+            throw new AdminAuthGuardError(
+                "admin-auth-guard/auth-unavailable",
+                "Firebase Authentication is unavailable."
             );
         }
 
-        function clearClaims() {
-            currentTokenResult =
-                null;
+        const state = {
+            user:
+                null,
 
-            currentClaims =
-                {};
+            tokenResult:
+                null,
 
-            currentRoles =
-                [];
+            claims:
+                {},
 
-            currentPermissions =
-                [];
+            roles:
+                [],
 
-            claimsLoadedAt =
-                null;
-        }
+            permissions:
+                [],
 
-        function areClaimsStale() {
+            initialized:
+                false,
+
+            authorized:
+                false,
+
+            lastClaimRefresh:
+                0
+        };
+
+        /* ==================================================
+           INITIALIZE
+        ================================================== */
+
+        async function initialize() {
             if (
-                !claimsLoadedAt
+                state.initialized
             ) {
-                return true;
+                return api;
             }
 
-            return (
-                Date.now() -
-                claimsLoadedAt
-            ) >
-                settings.claimsMaxAgeMs;
+            const user =
+                await waitForAuthUser(
+                    auth,
+                    settings.timeout
+                );
+
+            if (
+                !user
+            ) {
+                state.initialized =
+                    true;
+
+                state.authorized =
+                    false;
+
+                return api;
+            }
+
+            state.user =
+                user;
+
+            await refreshClaims(
+                true
+            );
+
+            state.initialized =
+                true;
+
+            return api;
         }
 
         /* ==================================================
-           AUTHORIZATION
+           CLAIM REFRESH
         ================================================== */
 
-        async function authorize(input) {
-            assertActive();
+        async function refreshClaims(
+            force
+        ) {
+            if (
+                !state.user
+            ) {
+                state.claims =
+                    {};
 
-            const request =
-                normalizeAuthorizationRequest(
-                    input
-                );
+                state.roles =
+                    [];
 
-            await init();
+                state.permissions =
+                    [];
+
+                state.authorized =
+                    false;
+
+                return null;
+            }
+
+            const now =
+                Date.now();
 
             if (
-                !currentUser
+                !force &&
+                state.tokenResult &&
+                now -
+                state.lastClaimRefresh <
+                    settings.claimMaxAge
             ) {
-                const decision =
-                    createDecision({
-                        allowed:
-                            false,
+                return state.tokenResult;
+            }
 
-                        authenticated:
-                            false,
-
-                        reason:
-                            "authentication-required",
-
-                        user:
-                            null,
-
-                        requiredRoles:
-                            request.roles,
-
-                        requiredPermissions:
-                            request.permissions
-                    });
-
-                lastDecision =
-                    decision;
-
-                if (
-                    request.redirect
-                ) {
-                    redirectToLogin(
-                        request.redirectPath
+            const result =
+                await state.user
+                    .getIdTokenResult(
+                        force ===
+                        true
                     );
-                }
 
-                return decision;
-            }
+            state.tokenResult =
+                result;
 
-            if (
-                request.forceClaimsRefresh ||
-                areClaimsStale()
-            ) {
-                await refreshClaims(
-                    true
-                );
-            }
-
-            const roleDecision =
-                evaluateRoleRequirement(
-                    currentRoles,
-                    request.roles,
-                    request.roleMode
+            state.claims =
+                normalizeClaims(
+                    result &&
+                    result.claims
                 );
 
-            const permissionDecision =
-                evaluatePermissionRequirement(
-                    currentPermissions,
-                    request.permissions,
-                    request.permissionMode
+            state.roles =
+                extractRoles(
+                    state.claims
                 );
 
-            const emailDecision =
-                evaluateEmailRequirement(
-                    currentUser,
-                    request.allowedEmails
+            state.permissions =
+                extractPermissions(
+                    state.claims
                 );
 
-            const customDecision =
-                await evaluateCustomRequirement(
-                    request.validator,
-                    {
-                        user:
-                            currentUser,
-
-                        claims:
-                            cloneValue(
-                                currentClaims
-                            ),
-
-                        roles:
-                            cloneValue(
-                                currentRoles
-                            ),
-
-                        permissions:
-                            cloneValue(
-                                currentPermissions
-                            )
-                    }
+            state.authorized =
+                isAdministratorClaims(
+                    state.claims
                 );
 
-            const allowed =
-                roleDecision.allowed &&
-                permissionDecision.allowed &&
-                emailDecision.allowed &&
-                customDecision.allowed;
+            state.lastClaimRefresh =
+                now;
 
-            const reason =
-                allowed
-                    ? "authorized"
-                    : roleDecision.allowed ===
-                        false
-                        ? "role-required"
-                        : permissionDecision.allowed ===
-                            false
-                            ? "permission-required"
-                            : emailDecision.allowed ===
-                                false
-                                ? "email-not-allowed"
-                                : "custom-check-failed";
-
-            const decision =
-                createDecision({
-                    allowed,
-                    authenticated:
-                        true,
-
-                    reason,
-
-                    user:
-                        currentUser,
-
-                    claims:
-                        currentClaims,
-
-                    roles:
-                        currentRoles,
-
-                    permissions:
-                        currentPermissions,
-
-                    requiredRoles:
-                        request.roles,
-
-                    requiredPermissions:
-                        request.permissions,
-
-                    missingRoles:
-                        roleDecision.missing,
-
-                    missingPermissions:
-                        permissionDecision.missing
-                });
-
-            lastDecision =
-                decision;
-
-            if (
-                !allowed &&
-                request.redirect
-            ) {
-                redirectUnauthorized(
-                    reason,
-                    request.redirectPath
-                );
-            }
-
-            return decision;
+            return result;
         }
 
-        async function requireAdmin(options) {
+        /* ==================================================
+           BASIC ADMIN REQUIREMENT
+        ================================================== */
+
+        async function requireAdmin(
+            options
+        ) {
             const source =
                 options ||
                 {};
 
-            const roles =
-                normalizeStringList(
-                    source.roles &&
-                    source.roles.length
-                        ? source.roles
-                        : settings.adminRoles
-                );
+            await initialize();
 
-            const permissions =
-                normalizeStringList(
-                    source.permissions &&
-                    source.permissions.length
-                        ? source.permissions
-                        : settings.adminPermissions
-                );
-
-            return authorize({
-                roles,
-                permissions,
-
-                roleMode:
-                    source.roleMode ||
-                    "any",
-
-                permissionMode:
-                    source.permissionMode ||
-                    "any",
-
-                redirect:
+            if (
+                !state.user
+            ) {
+                if (
                     source.redirect !==
-                    false,
+                    false
+                ) {
+                    redirectToLogin();
+                }
 
-                redirectPath:
-                    source.redirectPath,
+                throw new AdminAuthGuardError(
+                    "admin-auth-guard/unauthenticated",
+                    "Administrator authentication is required."
+                );
+            }
 
-                forceClaimsRefresh:
-                    source.forceClaimsRefresh ===
-                    true,
+            await refreshClaims(
+                source.forceRefresh ===
+                true
+            );
 
-                allowedEmails:
-                    source.allowedEmails,
+            if (
+                !isAdministratorClaims(
+                    state.claims
+                )
+            ) {
+                if (
+                    source.redirect !==
+                    false
+                ) {
+                    redirectUnauthorized();
+                }
 
-                validator:
-                    source.validator
-            });
+                throw new AdminAuthGuardError(
+                    "admin-auth-guard/admin-required",
+                    "Administrator access is required."
+                );
+            }
+
+            return createAuthorizationSnapshot();
         }
+
+        /* ==================================================
+           PERMISSION REQUIREMENT
+        ================================================== */
 
         async function requirePermission(
             permission,
             options
         ) {
-            const source =
-                options ||
-                {};
-
-            return authorize({
-                permissions:
-                    normalizeStringList(
-                        permission
-                    ),
-
-                permissionMode:
-                    source.permissionMode ||
-                    "all",
-
-                redirect:
-                    source.redirect ===
-                    true,
-
-                redirectPath:
-                    source.redirectPath,
-
-                forceClaimsRefresh:
-                    source.forceClaimsRefresh ===
-                    true
-            });
-        }
-
-        async function requireRole(
-            role,
-            options
-        ) {
-            const source =
-                options ||
-                {};
-
-            return authorize({
-                roles:
-                    normalizeStringList(
-                        role
-                    ),
-
-                roleMode:
-                    source.roleMode ||
-                    "any",
-
-                redirect:
-                    source.redirect ===
-                    true,
-
-                redirectPath:
-                    source.redirectPath,
-
-                forceClaimsRefresh:
-                    source.forceClaimsRefresh ===
-                    true
-            });
-        }
-
-        async function authorizeCurrentRoute(
-            options
-        ) {
-            const source =
-                options ||
-                {};
-
-            const route =
-                source.route ||
-                resolveCurrentAdminRoute(
-                    documentObject,
-                    windowObject
+            const normalizedPermission =
+                normalizeRequiredString(
+                    permission,
+                    "Permission"
                 );
 
-            const permission =
-                settings.routePermissions[
-                    route
-                ] ||
-                null;
-
-            const permissions =
-                permission
-                    ? [
-                          permission
-                      ]
-                    : settings.adminPermissions;
-
-            return requireAdmin({
-                permissions,
-                permissionMode:
-                    "all",
-
-                redirect:
-                    source.redirect !==
-                    false,
-
-                redirectPath:
-                    source.redirectPath,
-
-                forceClaimsRefresh:
-                    source.forceClaimsRefresh ===
-                    true
-            });
-        }
-
-        function can(permission) {
-            const requested =
-                normalizeStringList(
-                    permission
-                );
+            await requireAdmin(
+                options
+            );
 
             if (
-                !requested.length
-            ) {
-                return false;
-            }
-
-            return evaluatePermissionRequirement(
-                currentPermissions,
-                requested,
-                "all"
-            ).allowed;
-        }
-
-        function canAny(permissions) {
-            return evaluatePermissionRequirement(
-                currentPermissions,
-                normalizeStringList(
-                    permissions
-                ),
-                "any"
-            ).allowed;
-        }
-
-        function hasRole(role) {
-            return evaluateRoleRequirement(
-                currentRoles,
-                normalizeStringList(
-                    role
-                ),
-                "any"
-            ).allowed;
-        }
-
-        /* ==================================================
-           REDIRECTS
-        ================================================== */
-
-        function redirectToLogin(
-            requestedPath
-        ) {
-            const intendedPath =
-                sanitizeInternalPath(
-                    requestedPath ||
-                    getCurrentRelativePath(
-                        windowObject
-                    ),
-                    settings.adminPath
-                );
-
-            const destination =
-                appendQueryParameters(
-                    settings.loginPath,
-                    {
-                        [
-                            settings.redirectParameter
-                        ]:
-                            intendedPath,
-
-                        [
-                            settings.reasonParameter
-                        ]:
-                            "authentication-required"
-                    }
-                );
-
-            safeRedirect(
-                destination
-            );
-        }
-
-        function redirectUnauthorized(
-            reason,
-            requestedPath
-        ) {
-            const intendedPath =
-                sanitizeInternalPath(
-                    requestedPath ||
-                    getCurrentRelativePath(
-                        windowObject
-                    ),
-                    settings.adminPath
-                );
-
-            const destination =
-                appendQueryParameters(
-                    settings.unauthorizedPath,
-                    {
-                        [
-                            settings.redirectParameter
-                        ]:
-                            intendedPath,
-
-                        [
-                            settings.reasonParameter
-                        ]:
-                            reason ||
-                            "admin-required"
-                    }
-                );
-
-            safeRedirect(
-                destination
-            );
-        }
-
-        function safeRedirect(path) {
-            const destination =
-                normalizeRedirectDestination(
-                    path,
-                    settings.unauthorizedPath
-                );
-
-            const currentPath =
-                getCurrentRelativePath(
-                    windowObject
-                );
-
-            if (
-                normalizeComparablePath(
-                    destination
-                ) ===
-                normalizeComparablePath(
-                    currentPath
+                !can(
+                    normalizedPermission
                 )
             ) {
+                if (
+                    !options ||
+                    options.redirect !==
+                        false
+                ) {
+                    redirectUnauthorized();
+                }
+
                 throw new AdminAuthGuardError(
-                    "admin-auth/redirect-loop",
-                    "Administrator redirect loop prevented.",
+                    "admin-auth-guard/permission-denied",
+                    "You do not have permission to access this administrator resource.",
                     {
                         details: {
-                            destination,
-                            currentPath
+                            permission:
+                                normalizedPermission
                         }
                     }
                 );
             }
 
-            if (
-                windowObject.location &&
-                typeof windowObject.location.assign ===
-                    "function"
-            ) {
-                windowObject.location.assign(
-                    destination
-                );
-
-                return destination;
-            }
-
-            if (
-                windowObject.location
-            ) {
-                windowObject.location.href =
-                    destination;
-            }
-
-            return destination;
+            return createAuthorizationSnapshot();
         }
 
         /* ==================================================
-           SNAPSHOT
+           ROLE REQUIREMENT
         ================================================== */
 
-        function getSnapshot() {
-            return {
-                initialized,
-                destroyed,
-
-                authenticated:
-                    Boolean(
-                        currentUser
-                    ),
-
-                user:
-                    currentUser
-                        ? {
-                              uid:
-                                  currentUser.uid ||
-                                  null,
-
-                              email:
-                                  currentUser.email ||
-                                  null,
-
-                              displayName:
-                                  currentUser.displayName ||
-                                  null,
-
-                              emailVerified:
-                                  Boolean(
-                                      currentUser.emailVerified
-                                  )
-                          }
-                        : null,
-
-                claims:
-                    cloneValue(
-                        currentClaims
-                    ),
-
-                roles:
-                    cloneValue(
-                        currentRoles
-                    ),
-
-                permissions:
-                    cloneValue(
-                        currentPermissions
-                    ),
-
-                claimsLoadedAt:
-                    claimsLoadedAt
-                        ? new Date(
-                              claimsLoadedAt
-                          ).toISOString()
-                        : null,
-
-                claimsStale:
-                    areClaimsStale(),
-
-                lastDecision:
-                    cloneValue(
-                        lastDecision
-                    )
-            };
-        }
-
-        /* ==================================================
-           PUBLIC API
-        ================================================== */
-
-        const guard =
-            Object.freeze({
-                init,
-                destroy,
-
-                waitForAuthState,
-                refreshClaims,
-
-                authorize,
-                requireAdmin,
-                requirePermission,
-                requireRole,
-                authorizeCurrentRoute,
-
-                can,
-                canAny,
-                hasRole,
-
-                redirectToLogin,
-                redirectUnauthorized,
-
-                getSnapshot,
-
-                get user() {
-                    return currentUser;
-                },
-
-                get claims() {
-                    return cloneValue(
-                        currentClaims
-                    );
-                },
-
-                get roles() {
-                    return cloneValue(
-                        currentRoles
-                    );
-                },
-
-                get permissions() {
-                    return cloneValue(
-                        currentPermissions
-                    );
-                },
-
-                options:
-                    settings
-            });
-
-        return guard;
-    }
-
-    /* ======================================================
-       CLAIM EXTRACTION
-    ====================================================== */
-
-    function extractRoles(claims) {
-        const source =
-            claims ||
-            {};
-
-        const roles =
-            [];
-
-        appendRole(
-            roles,
-            source.role
-        );
-
-        appendRole(
-            roles,
-            source.userRole
-        );
-
-        appendRole(
-            roles,
-            source.adminRole
-        );
-
-        if (
-            Array.isArray(
-                source.roles
-            )
+        async function requireRole(
+            role,
+            options
         ) {
-            for (
-                const role of
-                source.roles
-            ) {
-                appendRole(
-                    roles,
+            const normalizedRole =
+                normalizeRole(
                     role
                 );
+
+            await requireAdmin(
+                options
+            );
+
+            if (
+                !hasRole(
+                    normalizedRole
+                )
+            ) {
+                if (
+                    !options ||
+                    options.redirect !==
+                        false
+                ) {
+                    redirectUnauthorized();
+                }
+
+                throw new AdminAuthGuardError(
+                    "admin-auth-guard/role-required",
+                    "Required administrator role is missing.",
+                    {
+                        details: {
+                            role:
+                                normalizedRole
+                        }
+                    }
+                );
             }
+
+            return createAuthorizationSnapshot();
         }
 
-        if (
-            source.admin ===
-            true
+        /* ==================================================
+           GENERIC AUTHORIZATION
+        ================================================== */
+
+        async function authorize(
+            input
         ) {
-            appendRole(
-                roles,
-                "admin"
-            );
-        }
+            const source =
+                input ||
+                {};
 
-        if (
-            source.isAdmin ===
-            true
-        ) {
-            appendRole(
-                roles,
-                "admin"
-            );
-        }
-
-        if (
-            source.superAdmin ===
-            true
-        ) {
-            appendRole(
-                roles,
-                "super-admin"
-            );
-        }
-
-        if (
-            source.owner ===
-            true
-        ) {
-            appendRole(
-                roles,
-                "owner"
-            );
-        }
-
-        return Array.from(
-            new Set(
-                roles
-            )
-        );
-    }
-
-    function appendRole(
-        output,
-        value
-    ) {
-        if (
-            value ===
-                undefined ||
-            value ===
-                null
-        ) {
-            return;
-        }
-
-        const normalized =
-            normalizeRole(
-                value
+            await requireAdmin(
+                source
             );
 
-        if (
-            normalized
-        ) {
-            output.push(
-                normalized
-            );
-        }
-    }
-
-    function extractPermissions(
-        claims,
-        roles,
-        rolePermissions
-    ) {
-        const source =
-            claims ||
-            {};
-
-        const permissions =
-            [];
-
-        appendPermissions(
-            permissions,
-            source.permissions
-        );
-
-        appendPermissions(
-            permissions,
-            source.scopes
-        );
-
-        appendPermissions(
-            permissions,
-            source.adminPermissions
-        );
-
-        if (
-            typeof source.permission ===
-                "string"
-        ) {
-            appendPermissions(
-                permissions,
-                [
+            const permissions =
+                normalizeStringList(
+                    source.permissions ||
                     source.permission
-                ]
-            );
-        }
-
-        for (
-            const role of
-            normalizeStringList(
-                roles
-            )
-        ) {
-            const mapped =
-                rolePermissions[
-                    role
-                ];
-
-            appendPermissions(
-                permissions,
-                mapped
-            );
-        }
-
-        if (
-            permissions.includes(
-                "*"
-            )
-        ) {
-            return [
-                "*"
-            ];
-        }
-
-        return Array.from(
-            new Set(
-                permissions
-                    .map(
-                        normalizePermission
-                    )
-                    .filter(
-                        Boolean
-                    )
-            )
-        );
-    }
-
-    function appendPermissions(
-        output,
-        values
-    ) {
-        if (
-            typeof values ===
-            "string"
-        ) {
-            values =
-                values.split(
-                    /[\s,]+/
                 );
+
+            const roles =
+                normalizeStringList(
+                    source.roles ||
+                    source.role
+                );
+
+            if (
+                permissions.length &&
+                !permissions.every(
+                    can
+                )
+            ) {
+                if (
+                    source.redirect !==
+                    false
+                ) {
+                    redirectUnauthorized();
+                }
+
+                throw new AdminAuthGuardError(
+                    "admin-auth-guard/permission-denied",
+                    "Required administrator permission is missing."
+                );
+            }
+
+            if (
+                roles.length &&
+                !roles.some(
+                    hasRole
+                )
+            ) {
+                if (
+                    source.redirect !==
+                    false
+                ) {
+                    redirectUnauthorized();
+                }
+
+                throw new AdminAuthGuardError(
+                    "admin-auth-guard/role-required",
+                    "Required administrator role is missing."
+                );
+            }
+
+            return createAuthorizationSnapshot();
         }
 
-        if (
-            !Array.isArray(
-                values
-            )
+        /* ==================================================
+           CURRENT ROUTE
+        ================================================== */
+
+        async function authorizeCurrentRoute(
+            options
         ) {
-            return;
+            const routeId =
+                resolveCurrentRouteId();
+
+            if (
+                !routeId
+            ) {
+                return requireAdmin(
+                    options
+                );
+            }
+
+            const permission =
+                ROUTE_PERMISSIONS[
+                    routeId
+                ] ||
+                resolveRouterPermission(
+                    routeId
+                );
+
+            if (
+                permission
+            ) {
+                return requirePermission(
+                    permission,
+                    options
+                );
+            }
+
+            return requireAdmin(
+                options
+            );
         }
 
-        for (
-            const permission of
-            values
+        async function guardCurrentPage(
+            options
+        ) {
+            return authorizeCurrentRoute(
+                options
+            );
+        }
+
+        /* ==================================================
+           PERMISSION CHECKS
+        ================================================== */
+
+        function can(
+            permission
         ) {
             const normalized =
                 normalizePermission(
@@ -1406,545 +650,331 @@
                 );
 
             if (
-                normalized
+                !normalized
             ) {
-                output.push(
-                    normalized
-                );
+                return false;
             }
-        }
-    }
 
-    /* ======================================================
-       REQUIREMENT EVALUATION
-    ====================================================== */
+            const effective =
+                getEffectivePermissions();
 
-    function evaluateRoleRequirement(
-        userRoles,
-        requiredRoles,
-        mode
-    ) {
-        const available =
-            normalizeStringList(
-                userRoles
-            ).map(
-                normalizeRole
-            );
-
-        const required =
-            normalizeStringList(
-                requiredRoles
-            ).map(
-                normalizeRole
-            );
-
-        if (
-            !required.length
-        ) {
-            return {
-                allowed:
-                    true,
-
-                missing:
-                    []
-            };
-        }
-
-        const missing =
-            required.filter(
+            return effective.some(
                 function (
-                    role
+                    granted
                 ) {
-                    return !available.includes(
-                        role
+                    return permissionMatches(
+                        granted,
+                        normalized
                     );
                 }
             );
-
-        if (
-            mode ===
-            "all"
-        ) {
-            return {
-                allowed:
-                    missing.length ===
-                    0,
-
-                missing
-            };
         }
 
-        return {
-            allowed:
-                required.some(
-                    function (
-                        role
-                    ) {
-                        return available.includes(
-                            role
-                        );
-                    }
-                ),
+        function canAny(
+            permissions
+        ) {
+            const required =
+                normalizeStringList(
+                    permissions
+                );
 
-            missing:
-                required.filter(
-                    function (
-                        role
-                    ) {
-                        return !available.includes(
-                            role
-                        );
-                    }
-                )
-        };
-    }
-
-    function evaluatePermissionRequirement(
-        userPermissions,
-        requiredPermissions,
-        mode
-    ) {
-        const available =
-            normalizeStringList(
-                userPermissions
-            ).map(
-                normalizePermission
+            return required.some(
+                can
             );
+        }
 
-        const required =
-            normalizeStringList(
-                requiredPermissions
-            ).map(
-                normalizePermission
+        function canAll(
+            permissions
+        ) {
+            const required =
+                normalizeStringList(
+                    permissions
+                );
+
+            return required.every(
+                can
             );
-
-        if (
-            !required.length
-        ) {
-            return {
-                allowed:
-                    true,
-
-                missing:
-                    []
-            };
         }
 
-        if (
-            available.includes(
-                "*"
-            )
+        function hasRole(
+            role
         ) {
-            return {
-                allowed:
-                    true,
+            const normalized =
+                normalizeRole(
+                    role
+                );
 
-                missing:
-                    []
-            };
+            return state.roles.includes(
+                normalized
+            );
         }
 
-        const missing =
-            required.filter(
-                function (
-                    permission
+        function hasPrivilegedRole() {
+            return PRIVILEGED_ROLES.some(
+                hasRole
+            );
+        }
+
+        function getEffectivePermissions() {
+            const merged =
+                new Set(
+                    state.permissions
+                );
+
+            for (
+                const role of
+                state.roles
+            ) {
+                const mapped =
+                    ROLE_PERMISSIONS[
+                        role
+                    ] ||
+                    [];
+
+                for (
+                    const permission of
+                    mapped
                 ) {
-                    return !permissionMatches(
-                        available,
+                    merged.add(
                         permission
                     );
                 }
-            );
+            }
 
-        if (
-            mode ===
-            "any"
-        ) {
+            return Array.from(
+                merged
+            );
+        }
+
+        /* ==================================================
+           SNAPSHOT
+        ================================================== */
+
+        function createAuthorizationSnapshot() {
             return {
-                allowed:
-                    required.some(
-                        function (
-                            permission
-                        ) {
-                            return permissionMatches(
-                                available,
-                                permission
-                            );
-                        }
+                uid:
+                    state.user
+                        ? state.user.uid
+                        : null,
+
+                email:
+                    state.user &&
+                    state.user.email
+                        ? state.user.email
+                        : state.claims.email ||
+                          null,
+
+                displayName:
+                    state.user &&
+                    state.user.displayName
+                        ? state.user.displayName
+                        : state.claims.name ||
+                          null,
+
+                claims:
+                    cloneValue(
+                        state.claims
                     ),
 
-                missing
+                roles:
+                    state.roles.slice(),
+
+                permissions:
+                    getEffectivePermissions(),
+
+                privileged:
+                    hasPrivilegedRole()
             };
         }
 
-        return {
-            allowed:
-                missing.length ===
-                0,
+        /* ==================================================
+           REDIRECTS
+        ================================================== */
 
-            missing
-        };
-    }
-
-    function permissionMatches(
-        availablePermissions,
-        requiredPermission
-    ) {
-        if (
-            availablePermissions.includes(
-                requiredPermission
-            )
-        ) {
-            return true;
+        function redirectToLogin() {
+            redirect(
+                settings.loginPath
+            );
         }
 
-        const parts =
-            requiredPermission.split(
-                "."
+        function redirectUnauthorized() {
+            redirect(
+                settings.unauthorizedPath
             );
+        }
 
-        while (
-            parts.length >
-            1
+        function redirectToAdmin() {
+            redirect(
+                settings.adminPath
+            );
+        }
+
+        function redirect(
+            path
         ) {
-            parts.pop();
+            if (
+                !global.location
+            ) {
+                return path;
+            }
+
+            const destination =
+                normalizeRequiredString(
+                    path,
+                    "Redirect path"
+                );
 
             if (
-                availablePermissions.includes(
-                    parts.join(
-                        "."
-                    ) +
-                    ".*"
-                )
+                typeof global.location.replace ===
+                "function"
             ) {
-                return true;
+                global.location.replace(
+                    destination
+                );
+            } else {
+                global.location.href =
+                    destination;
             }
+
+            return destination;
         }
 
-        return false;
-    }
+        /* ==================================================
+           PUBLIC API
+        ================================================== */
 
-    function evaluateEmailRequirement(
-        user,
-        allowedEmails
-    ) {
-        const normalizedEmails =
-            normalizeEmailList(
-                allowedEmails
-            );
+        const api =
+            Object.freeze({
+                initialize,
 
-        if (
-            !normalizedEmails.length
-        ) {
-            return {
-                allowed:
-                    true
-            };
-        }
+                refreshClaims,
 
-        const email =
-            user &&
-            user.email
-                ? String(
-                      user.email
-                  )
-                      .trim()
-                      .toLowerCase()
-                : "";
+                requireAdmin,
+                requirePermission,
+                requireRole,
 
-        return {
-            allowed:
-                Boolean(
-                    email &&
-                    normalizedEmails.includes(
-                        email
-                    )
-                )
-        };
-    }
+                authorize,
 
-    async function evaluateCustomRequirement(
-        validator,
-        context
-    ) {
-        if (
-            typeof validator !==
-            "function"
-        ) {
-            return {
-                allowed:
-                    true
-            };
-        }
+                authorizeCurrentRoute,
+                guardCurrentPage,
 
-        const result =
-            await validator(
-                context
-            );
+                can,
+                canAny,
+                canAll,
 
-        if (
-            result &&
-            typeof result ===
-                "object"
-        ) {
-            return {
-                allowed:
-                    result.allowed ===
-                    true,
+                hasRole,
+                hasPrivilegedRole,
 
-                details:
-                    cloneValue(
-                        result
-                    )
-            };
-        }
+                getEffectivePermissions,
+                createAuthorizationSnapshot,
 
-        return {
-            allowed:
-                result ===
-                true
-        };
-    }
+                redirectToLogin,
+                redirectUnauthorized,
+                redirectToAdmin,
+                redirect,
 
-    /* ======================================================
-       DECISIONS
-    ====================================================== */
+                state,
+                options:
+                    settings
+            });
 
-    function createDecision(input) {
-        const source =
-            input ||
-            {};
-
-        const user =
-            source.user ||
-            null;
-
-        return {
-            allowed:
-                source.allowed ===
-                true,
-
-            authenticated:
-                source.authenticated ===
-                true,
-
-            reason:
-                source.reason ||
-                "unknown",
-
-            user:
-                user
-                    ? {
-                          uid:
-                              user.uid ||
-                              null,
-
-                          email:
-                              user.email ||
-                              null,
-
-                          displayName:
-                              user.displayName ||
-                              null,
-
-                          emailVerified:
-                              Boolean(
-                                  user.emailVerified
-                              )
-                      }
-                    : null,
-
-            claims:
-                cloneValue(
-                    source.claims ||
-                    {}
-                ),
-
-            roles:
-                cloneValue(
-                    source.roles ||
-                    []
-                ),
-
-            permissions:
-                cloneValue(
-                    source.permissions ||
-                    []
-                ),
-
-            requiredRoles:
-                cloneValue(
-                    source.requiredRoles ||
-                    []
-                ),
-
-            requiredPermissions:
-                cloneValue(
-                    source.requiredPermissions ||
-                    []
-                ),
-
-            missingRoles:
-                cloneValue(
-                    source.missingRoles ||
-                    []
-                ),
-
-            missingPermissions:
-                cloneValue(
-                    source.missingPermissions ||
-                    []
-                ),
-
-            checkedAt:
-                new Date()
-                    .toISOString()
-        };
-    }
-
-    /* ======================================================
-       REQUEST NORMALIZATION
-    ====================================================== */
-
-    function normalizeAuthorizationRequest(input) {
-        const source =
-            input ||
-            {};
-
-        return {
-            roles:
-                normalizeStringList(
-                    source.roles ||
-                    source.role
-                ).map(
-                    normalizeRole
-                ),
-
-            permissions:
-                normalizeStringList(
-                    source.permissions ||
-                    source.permission
-                ).map(
-                    normalizePermission
-                ),
-
-            roleMode:
-                normalizeRequirementMode(
-                    source.roleMode,
-                    "any"
-                ),
-
-            permissionMode:
-                normalizeRequirementMode(
-                    source.permissionMode,
-                    "all"
-                ),
-
-            allowedEmails:
-                normalizeEmailList(
-                    source.allowedEmails
-                ),
-
-            validator:
-                typeof source.validator ===
-                    "function"
-                    ? source.validator
-                    : null,
-
-            redirect:
-                source.redirect ===
-                true,
-
-            redirectPath:
-                source.redirectPath ||
-                null,
-
-            forceClaimsRefresh:
-                source.forceClaimsRefresh ===
-                true
-        };
+        return api;
     }
 
     /* ======================================================
        ROUTE RESOLUTION
     ====================================================== */
 
-    function resolveCurrentAdminRoute(
-        documentObject,
-        windowObject
-    ) {
+    function resolveCurrentRouteId() {
         if (
-            documentObject
+            global.LEternelAdminRouter &&
+            typeof global
+                .LEternelAdminRouter
+                .getAdminRouter ===
+                "function"
         ) {
-            const activeRoot =
-                documentObject.querySelector(
+            try {
+                const router =
+                    global
+                        .LEternelAdminRouter
+                        .getAdminRouter();
+
+                if (
+                    router &&
+                    typeof router
+                        .getCurrentRouteId ===
+                        "function"
+                ) {
+                    const routeId =
+                        router
+                            .getCurrentRouteId();
+
+                    if (
+                        routeId
+                    ) {
+                        return routeId;
+                    }
+                }
+            } catch (
+                error
+            ) {
+                reportError(
+                    error
+                );
+            }
+        }
+
+        if (
+            global.document
+        ) {
+            const shell =
+                global.document.querySelector(
                     "[data-active-admin-route]"
                 );
 
             if (
-                activeRoot &&
-                activeRoot.dataset &&
-                activeRoot.dataset
+                shell &&
+                shell.dataset
                     .activeAdminRoute
             ) {
-                return normalizeRouteName(
-                    activeRoot.dataset
+                return normalizeRoute(
+                    shell.dataset
                         .activeAdminRoute
                 );
             }
-
-            const pageRoots = [
-                [
-                    "[data-admin-products]",
-                    "products"
-                ],
-
-                [
-                    "[data-admin-orders]",
-                    "orders"
-                ],
-
-                [
-                    "[data-admin-customers]",
-                    "customers"
-                ],
-
-                [
-                    "[data-admin-inventory]",
-                    "inventory"
-                ],
-
-                [
-                    "[data-admin-operations]",
-                    "operations"
-                ]
-            ];
-
-            for (
-                const [
-                    selector,
-                    route
-                ] of
-                pageRoots
-            ) {
-                if (
-                    documentObject.querySelector(
-                        selector
-                    )
-                ) {
-                    return route;
-                }
-            }
         }
 
-        const pathname =
-            windowObject &&
-            windowObject.location
-                ? windowObject.location.pathname
-                : "";
+        return resolveRouteFromPath(
+            global.location &&
+            global.location.pathname
+        );
+    }
+
+    function resolveRouteFromPath(
+        path
+    ) {
+        const normalized =
+            String(
+                path ||
+                ""
+            )
+                .toLowerCase()
+                .replace(
+                    /\/+$/,
+                    ""
+                );
 
         if (
-            pathname.includes(
+            normalized ===
+                "/admin" ||
+            normalized ===
+                "/admin/index.html"
+        ) {
+            return "dashboard";
+        }
+
+        if (
+            normalized.includes(
                 "/products"
             )
         ) {
@@ -1952,7 +982,7 @@
         }
 
         if (
-            pathname.includes(
+            normalized.includes(
                 "/orders"
             )
         ) {
@@ -1960,7 +990,7 @@
         }
 
         if (
-            pathname.includes(
+            normalized.includes(
                 "/customers"
             )
         ) {
@@ -1968,7 +998,7 @@
         }
 
         if (
-            pathname.includes(
+            normalized.includes(
                 "/inventory"
             )
         ) {
@@ -1976,47 +1006,436 @@
         }
 
         if (
-            pathname.includes(
+            normalized.includes(
                 "/operations"
             )
         ) {
             return "operations";
         }
 
-        return "dashboard";
+        if (
+            normalized.includes(
+                "/administrators"
+            )
+        ) {
+            return "administrators";
+        }
+
+        return null;
+    }
+
+    function resolveRouterPermission(
+        routeId
+    ) {
+        if (
+            !global.LEternelAdminRouter
+        ) {
+            return null;
+        }
+
+        try {
+            const router =
+                global.LEternelAdminRouter;
+
+            if (
+                typeof router.getRoute ===
+                    "function"
+            ) {
+                const route =
+                    router.getRoute(
+                        routeId
+                    );
+
+                return route &&
+                    route.permission
+                    ? route.permission
+                    : null;
+            }
+        } catch (
+            error
+        ) {
+            reportError(
+                error
+            );
+        }
+
+        return null;
     }
 
     /* ======================================================
-       REDIRECT HELPERS
+       CLAIM HELPERS
     ====================================================== */
 
-    function getCurrentRelativePath(
-        windowObject
+    function normalizeClaims(
+        claims
     ) {
-        if (
-            !windowObject ||
-            !windowObject.location
-        ) {
-            return DEFAULT_ADMIN_PATH;
-        }
-
-        return (
-            windowObject.location.pathname ||
-            "/"
-        ) +
-            (
-                windowObject.location.search ||
-                ""
-            ) +
-            (
-                windowObject.location.hash ||
-                ""
-            );
+        return claims &&
+            typeof claims ===
+                "object" &&
+            !Array.isArray(
+                claims
+            )
+            ? cloneValue(
+                  claims
+              )
+            : {};
     }
 
-    function sanitizeInternalPath(
+    function extractRoles(
+        claims
+    ) {
+        const source =
+            normalizeClaims(
+                claims
+            );
+
+        const roles =
+            normalizeStringList(
+                source.roles
+            );
+
+        const singular =
+            normalizeRole(
+                source.role
+            );
+
+        if (
+            singular &&
+            !roles.includes(
+                singular
+            )
+        ) {
+            roles.push(
+                singular
+            );
+        }
+
+        return Array.from(
+            new Set(
+                roles
+            )
+        );
+    }
+
+    function extractPermissions(
+        claims
+    ) {
+        return normalizeStringList(
+            normalizeClaims(
+                claims
+            ).permissions
+        );
+    }
+
+    function isAdministratorClaims(
+        claims
+    ) {
+        const source =
+            normalizeClaims(
+                claims
+            );
+
+        if (
+            source.admin ===
+                true ||
+            source.isAdmin ===
+                true
+        ) {
+            return true;
+        }
+
+        return extractRoles(
+            source
+        ).some(
+            function (
+                role
+            ) {
+                return ADMIN_ROLES.includes(
+                    role
+                );
+            }
+        );
+    }
+
+    /* ======================================================
+       PERMISSION MATCHING
+    ====================================================== */
+
+    function permissionMatches(
+        granted,
+        required
+    ) {
+        const grant =
+            normalizePermission(
+                granted
+            );
+
+        const need =
+            normalizePermission(
+                required
+            );
+
+        if (
+            !grant ||
+            !need
+        ) {
+            return false;
+        }
+
+        if (
+            grant ===
+            "*"
+        ) {
+            return true;
+        }
+
+        if (
+            grant ===
+            need
+        ) {
+            return true;
+        }
+
+        if (
+            grant.endsWith(
+                ".*"
+            )
+        ) {
+            const prefix =
+                grant.slice(
+                    0,
+                    -1
+                );
+
+            return need.startsWith(
+                prefix
+            );
+        }
+
+        return false;
+    }
+
+    /* ======================================================
+       AUTH WAIT
+    ====================================================== */
+
+    function waitForAuthUser(
+        auth,
+        timeout
+    ) {
+        if (
+            auth.currentUser
+        ) {
+            return Promise.resolve(
+                auth.currentUser
+            );
+        }
+
+        return new Promise(
+            function (
+                resolve,
+                reject
+            ) {
+                let settled =
+                    false;
+
+                let timer =
+                    null;
+
+                const finish =
+                    function (
+                        callback,
+                        value
+                    ) {
+                        if (
+                            settled
+                        ) {
+                            return;
+                        }
+
+                        settled =
+                            true;
+
+                        if (
+                            timer
+                        ) {
+                            clearTimeout(
+                                timer
+                            );
+                        }
+
+                        callback(
+                            value
+                        );
+                    };
+
+                let unsubscribe =
+                    null;
+
+                try {
+                    unsubscribe =
+                        auth
+                            .onAuthStateChanged(
+                                function (
+                                    user
+                                ) {
+                                    if (
+                                        unsubscribe
+                                    ) {
+                                        unsubscribe();
+                                    }
+
+                                    finish(
+                                        resolve,
+                                        user ||
+                                        null
+                                    );
+                                },
+                                function (
+                                    error
+                                ) {
+                                    if (
+                                        unsubscribe
+                                    ) {
+                                        unsubscribe();
+                                    }
+
+                                    finish(
+                                        reject,
+                                        error
+                                    );
+                                }
+                            );
+                } catch (
+                    error
+                ) {
+                    finish(
+                        reject,
+                        error
+                    );
+
+                    return;
+                }
+
+                timer =
+                    setTimeout(
+                        function () {
+                            if (
+                                unsubscribe
+                            ) {
+                                unsubscribe();
+                            }
+
+                            finish(
+                                reject,
+                                new AdminAuthGuardError(
+                                    "admin-auth-guard/auth-timeout",
+                                    "Administrator authentication timed out."
+                                )
+                            );
+                        },
+                        timeout
+                    );
+            }
+        );
+    }
+
+    /* ======================================================
+       FIREBASE
+    ====================================================== */
+
+    function resolveFirebaseAuth() {
+        if (
+            !global.firebase ||
+            typeof global.firebase.auth !==
+                "function"
+        ) {
+            return null;
+        }
+
+        try {
+            return global.firebase
+                .auth();
+        } catch (
+            error
+        ) {
+            reportError(
+                error
+            );
+
+            return null;
+        }
+    }
+
+    /* ======================================================
+       NORMALIZATION
+    ====================================================== */
+
+    function normalizeOptions(
+        options
+    ) {
+        const source =
+            options ||
+            {};
+
+        return Object.freeze({
+            auth:
+                source.auth ||
+                null,
+
+            loginPath:
+                normalizeOptionalString(
+                    source.loginPath
+                ) ||
+                DEFAULT_LOGIN_PATH,
+
+            unauthorizedPath:
+                normalizeOptionalString(
+                    source.unauthorizedPath
+                ) ||
+                DEFAULT_UNAUTHORIZED_PATH,
+
+            adminPath:
+                normalizeOptionalString(
+                    source.adminPath
+                ) ||
+                DEFAULT_ADMIN_PATH,
+
+            timeout:
+                normalizePositiveInteger(
+                    source.timeout,
+                    DEFAULT_TIMEOUT
+                ),
+
+            claimMaxAge:
+                normalizePositiveInteger(
+                    source.claimMaxAge,
+                    DEFAULT_CLAIM_MAX_AGE
+                )
+        });
+    }
+
+    function normalizePositiveInteger(
         value,
         fallback
+    ) {
+        const normalized =
+            Number(
+                value
+            );
+
+        return Number.isInteger(
+            normalized
+        ) &&
+        normalized >
+            0
+            ? normalized
+            : fallback;
+    }
+
+    function normalizeRequiredString(
+        value,
+        label
     ) {
         const normalized =
             String(
@@ -2027,344 +1446,38 @@
         if (
             !normalized
         ) {
-            return fallback;
-        }
-
-        if (
-            normalized.startsWith(
-                "//"
-            )
-        ) {
-            return fallback;
-        }
-
-        if (
-            /^[a-z][a-z0-9+.-]*:/i.test(
-                normalized
-            )
-        ) {
-            return fallback;
-        }
-
-        if (
-            !normalized.startsWith(
-                "/"
-            )
-        ) {
-            return fallback;
+            throw new AdminAuthGuardError(
+                "admin-auth-guard/invalid-argument",
+                (
+                    label ||
+                    "Value"
+                ) +
+                " is required."
+            );
         }
 
         return normalized;
     }
 
-    function normalizeRedirectDestination(
-        value,
-        fallback
-    ) {
-        return sanitizeInternalPath(
-            value,
-            fallback
-        );
-    }
-
-    function appendQueryParameters(
-        path,
-        parameters
-    ) {
-        const source =
-            parameters ||
-            {};
-
-        const hashIndex =
-            path.indexOf(
-                "#"
-            );
-
-        const hash =
-            hashIndex >=
-                0
-                ? path.slice(
-                      hashIndex
-                  )
-                : "";
-
-        const basePath =
-            hashIndex >=
-                0
-                ? path.slice(
-                      0,
-                      hashIndex
-                  )
-                : path;
-
-        const pairs =
-            [];
-
-        for (
-            const [
-                key,
-                value
-            ] of
-            Object.entries(
-                source
-            )
-        ) {
-            if (
-                value ===
-                    undefined ||
-                value ===
-                    null ||
-                value ===
-                    ""
-            ) {
-                continue;
-            }
-
-            pairs.push(
-                encodeURIComponent(
-                    key
-                ) +
-                "=" +
-                encodeURIComponent(
-                    String(
-                        value
-                    )
-                )
-            );
-        }
-
-        if (
-            !pairs.length
-        ) {
-            return path;
-        }
-
-        return basePath +
-            (
-                basePath.includes(
-                    "?"
-                )
-                    ? "&"
-                    : "?"
-            ) +
-            pairs.join(
-                "&"
-            ) +
-            hash;
-    }
-
-    function normalizeComparablePath(
+    function normalizeOptionalString(
         value
-    ) {
-        return String(
-            value ||
-            ""
-        )
-            .replace(
-                /\/+$/,
-                ""
-            )
-            .toLowerCase();
-    }
-
-    /* ======================================================
-       OPTIONS
-    ====================================================== */
-
-    function normalizeOptions(options) {
-        const source =
-            options ||
-            {};
-
-        return Object.freeze({
-            window:
-                source.window ||
-                null,
-
-            document:
-                source.document ||
-                null,
-
-            auth:
-                source.auth ||
-                null,
-
-            loginPath:
-                normalizePath(
-                    source.loginPath,
-                    DEFAULT_LOGIN_PATH
-                ),
-
-            unauthorizedPath:
-                normalizePath(
-                    source.unauthorizedPath,
-                    DEFAULT_UNAUTHORIZED_PATH
-                ),
-
-            adminPath:
-                normalizePath(
-                    source.adminPath,
-                    DEFAULT_ADMIN_PATH
-                ),
-
-            authTimeoutMs:
-                normalizePositiveInteger(
-                    source.authTimeoutMs,
-                    DEFAULT_AUTH_TIMEOUT_MS,
-                    "Authentication timeout"
-                ),
-
-            claimsMaxAgeMs:
-                normalizePositiveInteger(
-                    source.claimsMaxAgeMs,
-                    DEFAULT_CLAIMS_MAX_AGE_MS,
-                    "Claims maximum age"
-                ),
-
-            forceTokenRefreshOnInit:
-                source.forceTokenRefreshOnInit ===
-                true,
-
-            redirectParameter:
-                normalizeParameterName(
-                    source.redirectParameter,
-                    DEFAULT_REDIRECT_PARAMETER
-                ),
-
-            reasonParameter:
-                normalizeParameterName(
-                    source.reasonParameter,
-                    DEFAULT_REASON_PARAMETER
-                ),
-
-            adminRoles:
-                normalizeStringList(
-                    source.adminRoles &&
-                    source.adminRoles.length
-                        ? source.adminRoles
-                        : DEFAULT_ADMIN_ROLES
-                ).map(
-                    normalizeRole
-                ),
-
-            adminPermissions:
-                normalizeStringList(
-                    source.adminPermissions &&
-                    source.adminPermissions.length
-                        ? source.adminPermissions
-                        : DEFAULT_ADMIN_PERMISSIONS
-                ).map(
-                    normalizePermission
-                ),
-
-            rolePermissions:
-                normalizeRolePermissionMap(
-                    Object.assign(
-                        {},
-                        DEFAULT_ROLE_PERMISSIONS,
-                        source.rolePermissions ||
-                        {}
-                    )
-                ),
-
-            routePermissions:
-                Object.freeze(
-                    Object.assign(
-                        {},
-                        DEFAULT_ROUTE_PERMISSIONS,
-                        source.routePermissions ||
-                        {}
-                    )
-                )
-        });
-    }
-
-    function normalizePath(
-        value,
-        fallback
-    ) {
-        const normalized =
-            String(
-                value ||
-                fallback
-            ).trim();
-
-        return normalized ||
-            fallback;
-    }
-
-    function normalizePositiveInteger(
-        value,
-        fallback,
-        label
     ) {
         if (
             value ===
                 undefined ||
             value ===
-                null ||
-            value ===
-                ""
+                null
         ) {
-            return fallback;
+            return null;
         }
 
-        const normalized =
-            Number(
-                value
-            );
-
-        if (
-            !Number.isInteger(
-                normalized
-            ) ||
-            normalized <=
-                0
-        ) {
-            throw new TypeError(
-                label +
-                " must be a positive integer."
-            );
-        }
-
-        return normalized;
-    }
-
-    function normalizeParameterName(
-        value,
-        fallback
-    ) {
         const normalized =
             String(
-                value ||
-                fallback
-            )
-                .trim()
-                .replace(
-                    /[^a-zA-Z0-9_-]/g,
-                    ""
-                );
+                value
+            ).trim();
 
         return normalized ||
-            fallback;
-    }
-
-    function normalizeRequirementMode(
-        value,
-        fallback
-    ) {
-        const normalized =
-            String(
-                value ||
-                fallback
-            )
-                .trim()
-                .toLowerCase();
-
-        return normalized ===
-            "any"
-            ? "any"
-            : "all";
+            null;
     }
 
     function normalizeRole(
@@ -2375,11 +1488,7 @@
             ""
         )
             .trim()
-            .toLowerCase()
-            .replace(
-                /[\s_]+/g,
-                "-"
-            );
+            .toLowerCase();
     }
 
     function normalizePermission(
@@ -2390,27 +1499,18 @@
             ""
         )
             .trim()
-            .toLowerCase()
-            .replace(
-                /\s+/g,
-                ""
-            );
+            .toLowerCase();
     }
 
-    function normalizeRouteName(
+    function normalizeRoute(
         value
     ) {
         return String(
             value ||
-            "dashboard"
+            ""
         )
             .trim()
-            .toLowerCase()
-            .replace(
-                /[^a-z0-9-]/g,
-                ""
-            ) ||
-            "dashboard";
+            .toLowerCase();
     }
 
     function normalizeStringList(
@@ -2427,213 +1527,44 @@
             return [];
         }
 
-        if (
-            typeof value ===
-                "string"
-        ) {
-            return value
-                .split(
-                    /[\s,]+/
-                )
-                .map(
-                    function (
-                        item
-                    ) {
-                        return item.trim();
-                    }
-                )
-                .filter(
-                    Boolean
-                );
-        }
-
-        if (
-            !Array.isArray(
+        const values =
+            Array.isArray(
                 value
             )
-        ) {
-            return [
-                String(
-                    value
-                ).trim()
-            ].filter(
-                Boolean
-            );
-        }
+                ? value
+                : [
+                      value
+                  ];
 
-        return value
-            .map(
-                function (
-                    item
-                ) {
-                    return String(
-                        item ||
-                        ""
-                    ).trim();
-                }
-            )
-            .filter(
-                Boolean
-            );
-    }
-
-    function normalizeEmailList(
-        value
-    ) {
         return Array.from(
             new Set(
-                normalizeStringList(
-                    value
-                )
+                values
                     .map(
                         function (
-                            email
+                            item
                         ) {
-                            return email
+                            return String(
+                                item ||
+                                ""
+                            )
                                 .trim()
                                 .toLowerCase();
                         }
                     )
                     .filter(
-                        function (
-                            email
-                        ) {
-                            return email.includes(
-                                "@"
-                            );
-                        }
+                        Boolean
                     )
             )
         );
     }
 
-    function normalizeRolePermissionMap(
-        input
-    ) {
-        const source =
-            input ||
-            {};
-
-        const output =
-            {};
-
-        for (
-            const [
-                role,
-                permissions
-            ] of
-            Object.entries(
-                source
-            )
-        ) {
-            const normalizedRole =
-                normalizeRole(
-                    role
-                );
-
-            if (
-                !normalizedRole
-            ) {
-                continue;
-            }
-
-            output[
-                normalizedRole
-            ] =
-                Array.from(
-                    new Set(
-                        normalizeStringList(
-                            permissions
-                        )
-                            .map(
-                                normalizePermission
-                            )
-                            .filter(
-                                Boolean
-                            )
-                    )
-                );
-        }
-
-        return Object.freeze(
-            output
-        );
-    }
-
     /* ======================================================
-       FIREBASE
+       CLONE
     ====================================================== */
 
-    function resolveAuth() {
-        if (
-            global.firebase &&
-            typeof global.firebase.auth ===
-                "function"
-        ) {
-            return global.firebase.auth();
-        }
-
-        return null;
-    }
-
-    /* ======================================================
-       ERRORS / CLONE
-    ====================================================== */
-
-    function normalizeAdminAuthError(
-        error,
-        fallbackCode,
-        fallbackMessage
+    function cloneValue(
+        value
     ) {
-        if (
-            error instanceof
-            AdminAuthGuardError
-        ) {
-            return error;
-        }
-
-        return new AdminAuthGuardError(
-            error &&
-            error.code
-                ? String(
-                      error.code
-                  )
-                : fallbackCode,
-            error &&
-            error.message
-                ? String(
-                      error.message
-                  )
-                : fallbackMessage,
-            {
-                originalError:
-                    error,
-
-                details:
-                    error &&
-                    error.details
-                        ? cloneValue(
-                              error.details
-                          )
-                        : null
-            }
-        );
-    }
-
-    function reportError(error) {
-        if (
-            global.console &&
-            typeof global.console.error ===
-                "function"
-        ) {
-            global.console.error(
-                "Admin authorization guard error.",
-                error
-            );
-        }
-    }
-
-    function cloneValue(value) {
         if (
             value ===
                 undefined ||
@@ -2688,6 +1619,21 @@
         return value;
     }
 
+    function reportError(
+        error
+    ) {
+        if (
+            global.console &&
+            typeof global.console.error ===
+                "function"
+        ) {
+            global.console.error(
+                "Admin auth guard error.",
+                error
+            );
+        }
+    }
+
     /* ======================================================
        DEFAULT INSTANCE
     ====================================================== */
@@ -2695,7 +1641,9 @@
     let defaultGuard =
         null;
 
-    function getAdminAuthGuard(options) {
+    function getAdminAuthGuard(
+        options
+    ) {
         if (
             options
         ) {
@@ -2715,33 +1663,23 @@
     }
 
     function resetAdminAuthGuard() {
-        if (
-            defaultGuard
-        ) {
-            defaultGuard.destroy();
-        }
-
         defaultGuard =
             null;
     }
 
-    async function guardCurrentPage(options) {
+    async function bootstrap(
+        options
+    ) {
         const guard =
             getAdminAuthGuard(
                 options
             );
 
-        const decision =
-            await guard
-                .authorizeCurrentRoute({
-                    redirect:
-                        true
-                });
+        await guard.initialize();
 
-        return {
-            guard,
-            decision
-        };
+        await guard.guardCurrentPage();
+
+        return guard;
     }
 
     /* ======================================================
@@ -2753,40 +1691,33 @@
             createAdminAuthGuard,
             getAdminAuthGuard,
             resetAdminAuthGuard,
-            guardCurrentPage,
+            bootstrap,
 
             AdminAuthGuardError,
 
+            waitForAuthUser,
+            resolveFirebaseAuth,
+
+            resolveCurrentRouteId,
+            resolveRouteFromPath,
+            resolveRouterPermission,
+
+            normalizeClaims,
             extractRoles,
             extractPermissions,
-            evaluateRoleRequirement,
-            evaluatePermissionRequirement,
+            isAdministratorClaims,
+
             permissionMatches,
-            evaluateEmailRequirement,
-            evaluateCustomRequirement,
-            createDecision,
-
-            resolveCurrentAdminRoute,
-
-            getCurrentRelativePath,
-            sanitizeInternalPath,
-            normalizeRedirectDestination,
-            appendQueryParameters,
-            normalizeComparablePath,
 
             normalizeOptions,
-            normalizePath,
             normalizePositiveInteger,
-            normalizeParameterName,
-            normalizeRequirementMode,
+            normalizeRequiredString,
+            normalizeOptionalString,
             normalizeRole,
             normalizePermission,
-            normalizeRouteName,
+            normalizeRoute,
             normalizeStringList,
-            normalizeEmailList,
-            normalizeRolePermissionMap,
 
-            normalizeAdminAuthError,
             cloneValue,
 
             constants:
@@ -2794,14 +1725,14 @@
                     DEFAULT_LOGIN_PATH,
                     DEFAULT_UNAUTHORIZED_PATH,
                     DEFAULT_ADMIN_PATH,
-                    DEFAULT_AUTH_TIMEOUT_MS,
-                    DEFAULT_CLAIMS_MAX_AGE_MS,
-                    DEFAULT_REDIRECT_PARAMETER,
-                    DEFAULT_REASON_PARAMETER,
-                    DEFAULT_ADMIN_ROLES,
-                    DEFAULT_ADMIN_PERMISSIONS,
-                    DEFAULT_ROLE_PERMISSIONS,
-                    DEFAULT_ROUTE_PERMISSIONS
+                    DEFAULT_TIMEOUT,
+                    DEFAULT_CLAIM_MAX_AGE,
+
+                    ADMIN_ROLES,
+                    PRIVILEGED_ROLES,
+
+                    ROUTE_PERMISSIONS,
+                    ROLE_PERMISSIONS
                 })
         });
 

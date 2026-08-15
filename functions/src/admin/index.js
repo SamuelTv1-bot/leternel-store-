@@ -4,9 +4,11 @@
    L'ÉTERNEL STORE
    ADMIN MODULE INDEX
 
-   Central export surface for:
-   - Administrator authorization service
-   - Administrator callable functions
+   Integration-safe central export surface for:
+   - Administrator authorization
+   - Administrator Cloud Function callables
+   - Service bundles
+   - Deployable callable export map
 ========================================================== */
 
 /* ==========================================================
@@ -24,7 +26,7 @@ const adminCallables =
     );
 
 /* ==========================================================
-   ADMIN AUTH SERVICE EXPORTS
+   AUTH EXPORTS
 ========================================================== */
 
 const {
@@ -72,8 +74,8 @@ const {
     redactClaims,
 
     normalizeAdminAuthServiceError,
-    cloneValue:
 
+    cloneValue:
         cloneAdminAuthValue,
 
     constants:
@@ -82,7 +84,7 @@ const {
     adminAuthService;
 
 /* ==========================================================
-   ADMIN CALLABLE EXPORTS
+   CALLABLE EXPORTS
 ========================================================== */
 
 const {
@@ -98,16 +100,14 @@ const {
 
     normalizeCallableData,
     normalizeListPayload,
-    normalizeRequiredString:
 
+    normalizeRequiredString:
         normalizeCallableRequiredString,
 
     normalizeOptionalString:
-
         normalizeCallableOptionalString,
 
     normalizePositiveInteger:
-
         normalizeCallablePositiveInteger,
 
     sanitizeCallableClaims,
@@ -121,8 +121,8 @@ const {
     normalizeMemory,
 
     normalizeAdminCallableError,
-    cloneValue:
 
+    cloneValue:
         cloneAdminCallableValue,
 
     constants:
@@ -131,24 +131,16 @@ const {
     adminCallables;
 
 /* ==========================================================
-   AGGREGATED CONSTANTS
+   CONSTANTS
 ========================================================== */
 
 const constants =
     Object.freeze({
-        /* ----------------------------------------------
-           Nested module constants
-        ---------------------------------------------- */
-
         adminAuth:
             adminAuthConstants,
 
         adminCallables:
             adminCallableConstants,
-
-        /* ----------------------------------------------
-           Admin auth constants
-        ---------------------------------------------- */
 
         DEFAULT_USERS_COLLECTION:
             adminAuthConstants
@@ -182,10 +174,6 @@ const constants =
             adminAuthConstants
                 .DEFAULT_ROLE_PERMISSIONS,
 
-        /* ----------------------------------------------
-           Callable constants
-        ---------------------------------------------- */
-
         DEFAULT_REGION:
             adminCallableConstants
                 .DEFAULT_REGION,
@@ -200,20 +188,146 @@ const constants =
     });
 
 /* ==========================================================
-   SERVICE BUNDLE
+   SERVICE OPTION RESOLUTION
+
+   Supports BOTH:
+
+   createAdminServices({
+       admin,
+       auth,
+       firestore
+   });
+
+   AND:
+
+   createAdminServices({
+       adminAuth: {
+           admin,
+           auth,
+           firestore
+       }
+   });
+
+   AND:
+
+   createAdminServices({
+       auth: {
+           admin,
+           auth,
+           firestore
+       }
+   });
+
+   without confusing a raw Firebase Auth object with nested
+   service configuration.
+========================================================== */
+
+function resolveAdminAuthOptions(
+    options
+) {
+    const settings =
+        options &&
+        typeof options ===
+            "object"
+            ? options
+            : {};
+
+    /* ------------------------------------------------------
+       Explicit nested adminAuth configuration has priority.
+    ------------------------------------------------------ */
+
+    if (
+        isAdminAuthOptionsObject(
+            settings.adminAuth
+        )
+    ) {
+        return settings
+            .adminAuth;
+    }
+
+    /* ------------------------------------------------------
+       "auth" may itself be a nested service-options object.
+
+       Only treat it that way if it actually looks like one.
+    ------------------------------------------------------ */
+
+    if (
+        isAdminAuthOptionsObject(
+            settings.auth
+        )
+    ) {
+        return settings
+            .auth;
+    }
+
+    /* ------------------------------------------------------
+       Otherwise preserve the entire top-level object.
+
+       This correctly supports:
+       {
+           admin: firebaseAdmin,
+           auth: firebaseAuth,
+           firestore: firestore
+       }
+    ------------------------------------------------------ */
+
+    return settings;
+}
+
+function isAdminAuthOptionsObject(
+    value
+) {
+    if (
+        !value ||
+        typeof value !==
+            "object" ||
+        Array.isArray(
+            value
+        )
+    ) {
+        return false;
+    }
+
+    /*
+     * A raw Firebase Auth instance exposes methods such as
+     * getUser(), setCustomUserClaims(), listUsers().
+     *
+     * That must NOT be mistaken for an options container.
+     */
+    if (
+        typeof value.getUser ===
+            "function" ||
+        typeof value.setCustomUserClaims ===
+            "function" ||
+        typeof value.listUsers ===
+            "function"
+    ) {
+        return false;
+    }
+
+    return Boolean(
+        value.admin ||
+        value.auth ||
+        value.firestore ||
+        value.usersCollection ||
+        value.auditCollection ||
+        value.rolePermissions ||
+        value.defaultRole ||
+        value.maxClaimBytes
+    );
+}
+
+/* ==========================================================
+   ADMIN SERVICES
 ========================================================== */
 
 function createAdminServices(
     options
 ) {
-    const settings =
-        options ||
-        {};
-
     const authOptions =
-        settings.auth ||
-        settings.adminAuth ||
-        settings;
+        resolveAdminAuthOptions(
+            options
+        );
 
     const auth =
         createAdminAuthService(
@@ -257,35 +371,59 @@ function resetAdminServices() {
 }
 
 /* ==========================================================
-   CALLABLE BUNDLE
+   ADMIN FUNCTION BUNDLE
 ========================================================== */
 
 function createAdminFunctionBundle(
     options
 ) {
     const settings =
-        options ||
-        {};
+        options &&
+        typeof options ===
+            "object"
+            ? options
+            : {};
 
-    const services =
-        settings.services ||
-        (
-            settings.service
-                ? null
-                : createAdminServices(
-                      settings.serviceOptions ||
-                      settings.adminServices ||
-                      settings
-                  )
-        );
+    let services =
+        null;
 
-    const service =
+    let service =
         settings.service ||
-        (
-            services
-                ? services.auth
-                : null
-        );
+        settings.adminAuthService ||
+        null;
+
+    /* ------------------------------------------------------
+       If a service is directly injected, don't recreate it.
+    ------------------------------------------------------ */
+
+    if (
+        service
+    ) {
+        services =
+            Object.freeze({
+                auth:
+                    service
+            });
+    } else if (
+        settings.services &&
+        settings.services.auth
+    ) {
+        services =
+            settings.services;
+
+        service =
+            settings.services.auth;
+    } else {
+        services =
+            createAdminServices(
+                settings.serviceOptions ||
+                settings.adminServices ||
+                settings
+            );
+
+        service =
+            services.auth;
+    }
 
     const callables =
         createAdminCallables({
@@ -301,22 +439,11 @@ function createAdminFunctionBundle(
             runtimeOptions:
                 settings.runtimeOptions,
 
-            service:
-                service,
-
-            serviceOptions:
-                settings.serviceOptions ||
-                null
+            service
         });
 
     return Object.freeze({
-        services:
-            services ||
-            Object.freeze({
-                auth:
-                    service
-            }),
-
+        services,
         callables
     });
 }
@@ -359,6 +486,7 @@ function getAdminFunctionBundle(
 
 function resetAdminFunctionBundle() {
     resetAdminCallables();
+
     resetAdminServices();
 
     defaultAdminFunctionBundle =
@@ -366,7 +494,7 @@ function resetAdminFunctionBundle() {
 }
 
 /* ==========================================================
-   DEPLOYABLE CALLABLE EXPORT MAP
+   DEPLOYABLE EXPORT MAP
 ========================================================== */
 
 function createAdminCallableExports(
@@ -437,16 +565,19 @@ module.exports =
         adminCallables,
 
         /* ----------------------------------------------
-           Aggregated service bundle
+           Option resolution
+        ---------------------------------------------- */
+
+        resolveAdminAuthOptions,
+        isAdminAuthOptionsObject,
+
+        /* ----------------------------------------------
+           Service bundles
         ---------------------------------------------- */
 
         createAdminServices,
         getAdminServices,
         resetAdminServices,
-
-        /* ----------------------------------------------
-           Aggregate service + callable bundle
-        ---------------------------------------------- */
 
         createAdminFunctionBundle,
         getAdminFunctionBundle,
@@ -455,7 +586,7 @@ module.exports =
         createAdminCallableExports,
 
         /* ----------------------------------------------
-           Admin authorization service
+           Admin auth service
         ---------------------------------------------- */
 
         createAdminAuthService,
@@ -475,16 +606,12 @@ module.exports =
         AdminCallableError,
 
         /* ----------------------------------------------
-           Claim builders
+           Claims
         ---------------------------------------------- */
 
         buildRoleClaims,
         removeAdminClaims,
         createAdministratorSnapshot,
-
-        /* ----------------------------------------------
-           Claim inspection
-        ---------------------------------------------- */
 
         extractRoles,
         extractPermissions,
@@ -494,7 +621,7 @@ module.exports =
         permissionMatches,
 
         /* ----------------------------------------------
-           Admin auth request normalization
+           Request normalization
         ---------------------------------------------- */
 
         normalizeRoleMutationRequest,
@@ -505,7 +632,7 @@ module.exports =
         normalizeActor,
 
         /* ----------------------------------------------
-           General admin auth normalization
+           General auth normalization
         ---------------------------------------------- */
 
         normalizeServiceOptions,
@@ -531,17 +658,15 @@ module.exports =
         validateClaimsSize,
         redactClaims,
 
+        normalizeAdminAuthServiceError,
+
         /* ----------------------------------------------
-           Callable construction
+           Callable helpers
         ---------------------------------------------- */
 
         createCallable,
         requireCallableAdministrator,
         createActorFromCallableContext,
-
-        /* ----------------------------------------------
-           Callable payload helpers
-        ---------------------------------------------- */
 
         normalizeCallableData,
         normalizeListPayload,
@@ -553,10 +678,6 @@ module.exports =
         sanitizeCallableClaims,
         createSafeActorSnapshot,
 
-        /* ----------------------------------------------
-           Callable HTTPS errors
-        ---------------------------------------------- */
-
         toHttpsError,
         mapServiceErrorToHttpsCode,
 
@@ -567,13 +688,7 @@ module.exports =
         normalizeAdminCallableError,
 
         /* ----------------------------------------------
-           Error helpers
-        ---------------------------------------------- */
-
-        normalizeAdminAuthServiceError,
-
-        /* ----------------------------------------------
-           Clone helpers
+           Clone utilities
         ---------------------------------------------- */
 
         cloneValue,

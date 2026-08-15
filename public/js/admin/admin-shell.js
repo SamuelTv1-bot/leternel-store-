@@ -5,18 +5,16 @@
    ADMIN SHELL
 
    Responsibilities:
-   - Manage responsive admin sidebar state
+   - Initialize admin router
+   - Initialize centralized auth guard
    - Populate administrator identity
-   - Guard admin pages with Firebase Authentication
-   - Verify administrator claims
-   - Handle sign-out
-   - Initialize the shared admin router
-   - Initialize page-specific controllers
+   - Control mobile sidebar
+   - Filter navigation by permissions
+   - Resolve and initialize the active page controller
+   - Handle sign out
 ========================================================== */
 
-(function (
-    global
-) {
+(function (global) {
     /* ======================================================
        CONSTANTS
     ====================================================== */
@@ -24,22 +22,22 @@
     const DEFAULT_SELECTORS =
         Object.freeze({
             shell:
-                "[data-admin-shell], .admin-shell",
+                "[data-admin-shell]",
 
             sidebar:
-                "[data-admin-sidebar], .admin-sidebar",
+                "[data-admin-sidebar]",
 
             menuToggle:
                 "[data-admin-menu-toggle]",
 
-            overlay:
-                "[data-admin-overlay], [data-admin-sidebar-backdrop]",
+            backdrop:
+                "[data-admin-sidebar-backdrop]",
 
             navigation:
                 "[data-admin-nav]",
 
-            navigationLinks:
-                "[data-admin-nav] a",
+            routeLinks:
+                "[data-admin-route]",
 
             userName:
                 "[data-admin-user-name]",
@@ -47,32 +45,84 @@
             userEmail:
                 "[data-admin-user-email]",
 
-            userAvatar:
+            avatar:
                 "[data-admin-avatar]",
 
-            signOutButton:
+            signout:
                 "[data-admin-signout]",
 
             content:
                 "[data-admin-content]",
 
-            currentDate:
-                "[data-admin-current-date]"
+            date:
+                "[data-admin-date]"
         });
 
-    const DEFAULT_LOGIN_PATH =
-        "/";
+    const ROUTE_CONTROLLERS =
+        Object.freeze({
+            dashboard:
+                Object.freeze({
+                    globalName:
+                        "LEternelDashboardController",
 
-    const DEFAULT_UNAUTHORIZED_PATH =
-        "/";
+                    bootstrap:
+                        "bootstrap"
+                }),
 
-    const ADMIN_ROLE_NAMES =
-        Object.freeze([
-            "admin",
-            "administrator",
-            "owner",
-            "super-admin"
-        ]);
+            products:
+                Object.freeze({
+                    globalName:
+                        "LEternelProductsController",
+
+                    bootstrap:
+                        "bootstrap"
+                }),
+
+            orders:
+                Object.freeze({
+                    globalName:
+                        "LEternelOrdersController",
+
+                    bootstrap:
+                        "bootstrap"
+                }),
+
+            customers:
+                Object.freeze({
+                    globalName:
+                        "LEternelCustomersController",
+
+                    bootstrap:
+                        "bootstrap"
+                }),
+
+            inventory:
+                Object.freeze({
+                    globalName:
+                        "LEternelInventoryController",
+
+                    bootstrap:
+                        "bootstrap"
+                }),
+
+            operations:
+                Object.freeze({
+                    globalName:
+                        "LEternelOperationsController",
+
+                    bootstrap:
+                        "bootstrap"
+                }),
+
+            administrators:
+                Object.freeze({
+                    globalName:
+                        "LEternelAdministratorsController",
+
+                    bootstrap:
+                        "bootstrap"
+                })
+        });
 
     /* ======================================================
        ERROR
@@ -86,7 +136,7 @@
         ) {
             super(
                 message ||
-                "Admin shell operation failed."
+                "Administrator shell initialization failed."
             );
 
             this.name =
@@ -122,505 +172,226 @@
                 options
             );
 
-        const documentObject =
-            settings.document ||
-            global.document;
-
-        const windowObject =
-            settings.window ||
-            global;
+        const root =
+            settings.root ||
+            (
+                global.document
+                    ? global.document.querySelector(
+                          settings.selectors.shell
+                      )
+                    : null
+            );
 
         if (
-            !documentObject
+            !root
         ) {
             throw new AdminShellError(
-                "admin-shell/document-unavailable",
-                "Admin shell requires a document."
+                "admin-shell/root-not-found",
+                "Administrator shell root element was not found."
             );
         }
 
         const elements =
-            resolveElements(
-                documentObject,
+            collectElements(
+                root,
                 settings.selectors
             );
 
-        const auth =
-            settings.auth ||
-            resolveAuth();
+        const state = {
+            initialized:
+                false,
 
-        const disposers =
-            [];
+            destroyed:
+                false,
 
-        let initialized =
-            false;
+            sidebarOpen:
+                false,
 
-        let destroyed =
-            false;
+            route:
+                null,
 
-        let sidebarOpen =
-            false;
+            router:
+                null,
 
-        let authenticatedUser =
-            null;
+            guard:
+                null,
 
-        let administratorClaims =
-            null;
+            authorization:
+                null,
 
-        let activeController =
-            null;
+            pageController:
+                null,
 
-        let authResolved =
-            false;
+            listeners:
+                []
+        };
 
         /* ==================================================
-           LIFECYCLE
+           INITIALIZE
         ================================================== */
 
-        async function init() {
+        async function initialize() {
             if (
-                initialized
+                state.initialized
             ) {
-                return shell;
+                return api;
             }
-
-            assertActive();
-
-            initialized =
-                true;
 
             bindEvents();
 
-            setCurrentDate();
-
-            await initializeRouter();
-
-            if (
-                settings.requireAuthentication
-            ) {
-                await waitForAuthentication();
-            } else {
-                populateIdentity(
-                    auth &&
-                    auth.currentUser
-                        ? auth.currentUser
-                        : null
+            state.router =
+                resolveRouter(
+                    settings.router
                 );
-            }
-
-            await initializePageController();
-
-            return shell;
-        }
-
-        function destroy() {
-            if (
-                destroyed
-            ) {
-                return;
-            }
-
-            destroyed =
-                true;
-
-            while (
-                disposers.length
-            ) {
-                const dispose =
-                    disposers.pop();
-
-                try {
-                    dispose();
-                } catch (
-                    error
-                ) {
-                    reportError(
-                        error
-                    );
-                }
-            }
 
             if (
-                activeController &&
-                typeof activeController.destroy ===
+                state.router &&
+                typeof state.router.initialize ===
                     "function"
             ) {
-                try {
-                    activeController.destroy();
-                } catch (
-                    error
-                ) {
-                    reportError(
-                        error
-                    );
-                }
+                state.router.initialize();
             }
 
-            activeController =
-                null;
+            state.route =
+                resolveCurrentRoute(
+                    state.router
+                );
 
-            closeSidebar();
+            state.guard =
+                resolveAuthGuard(
+                    settings.guard
+                );
 
-            initialized =
-                false;
-        }
-
-        function assertActive() {
             if (
-                destroyed
+                !state.guard
             ) {
                 throw new AdminShellError(
-                    "admin-shell/destroyed",
-                    "Admin shell has been destroyed."
+                    "admin-shell/auth-guard-unavailable",
+                    "Administrator authorization guard is unavailable."
                 );
             }
+
+            state.authorization =
+                await authorizeCurrentPage(
+                    state.guard
+                );
+
+            renderIdentity(
+                state.authorization
+            );
+
+            renderDate();
+
+            filterNavigation(
+                state.authorization
+            );
+
+            state.pageController =
+                await initializePageController(
+                    state.route
+                );
+
+            state.initialized =
+                true;
+
+            root.classList.add(
+                "is-ready"
+            );
+
+            root.dataset.adminReady =
+                "true";
+
+            return api;
         }
 
         /* ==================================================
-           AUTHENTICATION
+           DESTROY
         ================================================== */
 
-        function waitForAuthentication() {
-            if (
-                !auth ||
-                typeof auth.onAuthStateChanged !==
-                    "function"
+        function destroy() {
+            for (
+                const listener of
+                state.listeners
             ) {
-                throw new AdminShellError(
-                    "admin-shell/auth-unavailable",
-                    "Firebase Authentication is unavailable."
-                );
+                listener.element
+                    .removeEventListener(
+                        listener.event,
+                        listener.handler
+                    );
             }
 
-            return new Promise(
-                function (
-                    resolve,
-                    reject
+            state.listeners =
+                [];
+
+            if (
+                state.pageController &&
+                typeof state.pageController.destroy ===
+                    "function"
+            ) {
+                try {
+                    state.pageController.destroy();
+                } catch (
+                    error
                 ) {
-                    let settled =
-                        false;
-
-                    const timeout =
-                        windowObject.setTimeout(
-                            function () {
-                                if (
-                                    settled
-                                ) {
-                                    return;
-                                }
-
-                                settled =
-                                    true;
-
-                                reject(
-                                    new AdminShellError(
-                                        "admin-shell/auth-timeout",
-                                        "Authentication verification timed out."
-                                    )
-                                );
-                            },
-                            settings.authenticationTimeoutMs
-                        );
-
-                    const unsubscribe =
-                        auth.onAuthStateChanged(
-                            async function (
-                                user
-                            ) {
-                                if (
-                                    settled
-                                ) {
-                                    return;
-                                }
-
-                                try {
-                                    authenticatedUser =
-                                        user ||
-                                        null;
-
-                                    populateIdentity(
-                                        authenticatedUser
-                                    );
-
-                                    if (
-                                        !authenticatedUser
-                                    ) {
-                                        settled =
-                                            true;
-
-                                        windowObject.clearTimeout(
-                                            timeout
-                                        );
-
-                                        redirectToLogin();
-
-                                        resolve(
-                                            null
-                                        );
-
-                                        return;
-                                    }
-
-                                    administratorClaims =
-                                        await loadClaims(
-                                            authenticatedUser
-                                        );
-
-                                    if (
-                                        settings.requireAdministrator &&
-                                        !isAdministrator(
-                                            administratorClaims,
-                                            authenticatedUser
-                                        )
-                                    ) {
-                                        settled =
-                                            true;
-
-                                        windowObject.clearTimeout(
-                                            timeout
-                                        );
-
-                                        redirectUnauthorized();
-
-                                        resolve(
-                                            null
-                                        );
-
-                                        return;
-                                    }
-
-                                    authResolved =
-                                        true;
-
-                                    settled =
-                                        true;
-
-                                    windowObject.clearTimeout(
-                                        timeout
-                                    );
-
-                                    resolve(
-                                        authenticatedUser
-                                    );
-                                } catch (
-                                    error
-                                ) {
-                                    settled =
-                                        true;
-
-                                    windowObject.clearTimeout(
-                                        timeout
-                                    );
-
-                                    reject(
-                                        normalizeAdminShellError(
-                                            error,
-                                            "admin-shell/auth-verification-failed",
-                                            "Unable to verify administrator access."
-                                        )
-                                    );
-                                }
-                            },
-                            function (
-                                error
-                            ) {
-                                if (
-                                    settled
-                                ) {
-                                    return;
-                                }
-
-                                settled =
-                                    true;
-
-                                windowObject.clearTimeout(
-                                    timeout
-                                );
-
-                                reject(
-                                    normalizeAdminShellError(
-                                        error,
-                                        "admin-shell/auth-listener-failed",
-                                        "Authentication listener failed."
-                                    )
-                                );
-                            }
-                        );
-
-                    disposers.push(
-                        function () {
-                            if (
-                                typeof unsubscribe ===
-                                "function"
-                            ) {
-                                unsubscribe();
-                            }
-                        }
+                    reportError(
+                        error
                     );
                 }
-            );
+            }
+
+            closeSidebar();
+
+            state.destroyed =
+                true;
+
+            state.initialized =
+                false;
         }
 
-        async function loadClaims(
-            user
+        /* ==================================================
+           AUTHORIZATION
+        ================================================== */
+
+        async function authorizeCurrentPage(
+            guard
         ) {
-            if (
-                !user ||
-                typeof user.getIdTokenResult !==
+            try {
+                if (
+                    typeof guard.guardCurrentPage ===
                     "function"
-            ) {
-                return {};
-            }
+                ) {
+                    return await guard
+                        .guardCurrentPage();
+                }
 
-            const result =
-                await user.getIdTokenResult(
-                    settings.forceTokenRefresh
-                );
-
-            return result &&
-                result.claims
-                    ? cloneValue(
-                          result.claims
-                      )
-                    : {};
-        }
-
-        function isAdministrator(
-            claims,
-            user
-        ) {
-            const source =
-                claims ||
-                {};
-
-            if (
-                source.admin ===
-                    true ||
-                source.isAdmin ===
-                    true ||
-                source.superAdmin ===
-                    true
-            ) {
-                return true;
-            }
-
-            const role =
-                String(
-                    source.role ||
-                    source.userRole ||
-                    ""
-                )
-                    .trim()
-                    .toLowerCase();
-
-            if (
-                ADMIN_ROLE_NAMES.includes(
-                    role
-                )
-            ) {
-                return true;
-            }
-
-            const roles =
-                Array.isArray(
-                    source.roles
-                )
-                    ? source.roles.map(
-                          function (
-                              item
-                          ) {
-                              return String(
-                                  item
-                              )
-                                  .trim()
-                                  .toLowerCase();
-                          }
-                      )
-                    : [];
-
-            if (
-                roles.some(
-                    function (
-                        item
-                    ) {
-                        return ADMIN_ROLE_NAMES.includes(
-                            item
-                        );
-                    }
-                )
-            ) {
-                return true;
-            }
-
-            if (
-                settings.allowedAdminEmails.length &&
-                user &&
-                user.email
-            ) {
-                return settings.allowedAdminEmails.includes(
-                    String(
-                        user.email
-                    )
-                        .trim()
-                        .toLowerCase()
-                );
-            }
-
-            return settings.allowAuthenticatedFallback;
-        }
-
-        function redirectToLogin() {
-            const currentPath =
-                windowObject.location
-                    ? windowObject.location.pathname +
-                      windowObject.location.search
-                    : "/admin/";
-
-            const destination =
-                appendQueryParameter(
-                    settings.loginPath,
-                    "redirect",
-                    currentPath
-                );
-
-            redirect(
-                destination
-            );
-        }
-
-        function redirectUnauthorized() {
-            const destination =
-                appendQueryParameter(
-                    settings.unauthorizedPath,
-                    "reason",
-                    "admin-required"
-                );
-
-            redirect(
-                destination
-            );
-        }
-
-        function redirect(
-            path
-        ) {
-            if (
-                windowObject.location &&
-                typeof windowObject.location.assign ===
+                if (
+                    typeof guard.authorizeCurrentRoute ===
                     "function"
-            ) {
-                windowObject.location.assign(
-                    path
+                ) {
+                    return await guard
+                        .authorizeCurrentRoute();
+                }
+
+                if (
+                    typeof guard.requireAdmin ===
+                    "function"
+                ) {
+                    return await guard
+                        .requireAdmin();
+                }
+
+                throw new AdminShellError(
+                    "admin-shell/invalid-auth-guard",
+                    "Administrator authorization guard does not expose a supported authorization method."
                 );
-
-                return;
-            }
-
-            if (
-                windowObject.location
+            } catch (
+                error
             ) {
-                windowObject.location.href =
-                    path;
+                throw normalizeShellError(
+                    error,
+                    "admin-shell/authorization-failed",
+                    "Administrator authorization failed."
+                );
             }
         }
 
@@ -628,19 +399,39 @@
            IDENTITY
         ================================================== */
 
-        function populateIdentity(
-            user
+        function renderIdentity(
+            authorization
         ) {
+            const source =
+                authorization ||
+                {};
+
+            const user =
+                state.guard &&
+                state.guard.state &&
+                state.guard.state.user
+                    ? state.guard.state.user
+                    : null;
+
             const displayName =
-                getUserDisplayName(
-                    user
-                );
+                normalizeOptionalString(
+                    source.displayName
+                ) ||
+                normalizeOptionalString(
+                    user &&
+                    user.displayName
+                ) ||
+                "Administrator";
 
             const email =
-                user &&
-                user.email
-                    ? user.email
-                    : "—";
+                normalizeOptionalString(
+                    source.email
+                ) ||
+                normalizeOptionalString(
+                    user &&
+                    user.email
+                ) ||
+                "—";
 
             setText(
                 elements.userName,
@@ -653,62 +444,251 @@
             );
 
             setText(
-                elements.userAvatar,
-                createInitials(
-                    displayName,
+                elements.avatar,
+                getInitials(
+                    displayName ||
                     email
                 )
             );
+        }
+
+        /* ==================================================
+           NAVIGATION PERMISSIONS
+        ================================================== */
+
+        function filterNavigation(
+            authorization
+        ) {
+            if (
+                !elements.navigation
+            ) {
+                return;
+            }
+
+            const links =
+                elements.navigation
+                    .querySelectorAll(
+                        settings.selectors.routeLinks
+                    );
+
+            for (
+                const link of
+                links
+            ) {
+                const routeId =
+                    normalizeRoute(
+                        link.dataset
+                            .adminRoute
+                    );
+
+                if (
+                    !routeId
+                ) {
+                    continue;
+                }
+
+                const permission =
+                    resolveRoutePermission(
+                        routeId
+                    );
+
+                const allowed =
+                    !permission ||
+                    canAccessPermission(
+                        permission,
+                        authorization
+                    );
+
+                link.hidden =
+                    !allowed;
+
+                link.setAttribute(
+                    "aria-hidden",
+                    allowed
+                        ? "false"
+                        : "true"
+                );
+
+                if (
+                    !allowed
+                ) {
+                    link.removeAttribute(
+                        "aria-current"
+                    );
+
+                    link.classList.remove(
+                        "is-active"
+                    );
+
+                    link.tabIndex =
+                        -1;
+                } else {
+                    link.removeAttribute(
+                        "tabindex"
+                    );
+                }
+            }
+        }
+
+        function resolveRoutePermission(
+            routeId
+        ) {
+            if (
+                state.router &&
+                typeof state.router
+                    .getRoutePermission ===
+                    "function"
+            ) {
+                const permission =
+                    state.router
+                        .getRoutePermission(
+                            routeId
+                        );
+
+                if (
+                    permission
+                ) {
+                    return permission;
+                }
+            }
 
             if (
-                elements.userAvatar
+                global.LEternelAdminRouter &&
+                typeof global
+                    .LEternelAdminRouter
+                    .getRoute ===
+                    "function"
             ) {
-                elements.userAvatar.setAttribute(
-                    "title",
-                    displayName
+                const route =
+                    global
+                        .LEternelAdminRouter
+                        .getRoute(
+                            routeId
+                        );
+
+                if (
+                    route &&
+                    route.permission
+                ) {
+                    return route.permission;
+                }
+            }
+
+            return null;
+        }
+
+        function canAccessPermission(
+            permission,
+            authorization
+        ) {
+            if (
+                state.guard &&
+                typeof state.guard.can ===
+                    "function"
+            ) {
+                return state.guard.can(
+                    permission
+                );
+            }
+
+            const source =
+                authorization ||
+                {};
+
+            const permissions =
+                normalizeStringList(
+                    source.permissions
+                );
+
+            return permissions.some(
+                function (
+                    granted
+                ) {
+                    return permissionMatches(
+                        granted,
+                        permission
+                    );
+                }
+            );
+        }
+
+        /* ==================================================
+           PAGE CONTROLLER
+        ================================================== */
+
+        async function initializePageController(
+            route
+        ) {
+            const routeId =
+                route &&
+                route.id
+                    ? route.id
+                    : resolveRouteFromRoot();
+
+            if (
+                !routeId
+            ) {
+                return null;
+            }
+
+            const descriptor =
+                ROUTE_CONTROLLERS[
+                    routeId
+                ];
+
+            if (
+                !descriptor
+            ) {
+                return null;
+            }
+
+            const controllerModule =
+                global[
+                    descriptor.globalName
+                ];
+
+            if (
+                !controllerModule
+            ) {
+                return null;
+            }
+
+            const bootstrap =
+                controllerModule[
+                    descriptor.bootstrap
+                ];
+
+            if (
+                typeof bootstrap !==
+                    "function"
+            ) {
+                return null;
+            }
+
+            try {
+                return await bootstrap.call(
+                    controllerModule
+                );
+            } catch (
+                error
+            ) {
+                throw normalizeShellError(
+                    error,
+                    "admin-shell/controller-failed",
+                    "Unable to initialize administrator page controller."
                 );
             }
         }
 
-        function getUserDisplayName(
-            user
-        ) {
-            if (
-                user &&
-                user.displayName
-            ) {
-                return String(
-                    user.displayName
-                ).trim();
-            }
+        function resolveRouteFromRoot() {
+            const route =
+                normalizeRoute(
+                    root.dataset
+                        .activeAdminRoute
+                );
 
-            if (
-                user &&
-                user.email
-            ) {
-                const emailName =
-                    String(
-                        user.email
-                    )
-                        .split(
-                            "@"
-                        )[0]
-                        .replace(
-                            /[._-]+/g,
-                            " "
-                        )
-                        .trim();
-
-                if (
-                    emailName
-                ) {
-                    return titleCase(
-                        emailName
-                    );
-                }
-            }
-
-            return "Administrator";
+            return route ||
+                null;
         }
 
         /* ==================================================
@@ -716,44 +696,18 @@
         ================================================== */
 
         function openSidebar() {
-            setSidebarOpen(
-                true
-            );
-        }
+            state.sidebarOpen =
+                true;
 
-        function closeSidebar() {
-            setSidebarOpen(
-                false
+            root.classList.add(
+                "admin-sidebar-open"
             );
-        }
-
-        function toggleSidebar() {
-            setSidebarOpen(
-                !sidebarOpen
-            );
-        }
-
-        function setSidebarOpen(
-            open
-        ) {
-            sidebarOpen =
-                Boolean(
-                    open
-                );
 
             if (
                 elements.sidebar
             ) {
-                elements.sidebar.classList.toggle(
-                    "is-open",
-                    sidebarOpen
-                );
-
-                elements.sidebar.setAttribute(
-                    "aria-hidden",
-                    sidebarOpen
-                        ? "false"
-                        : "true"
+                elements.sidebar.classList.add(
+                    "is-open"
                 );
             }
 
@@ -762,33 +716,69 @@
             ) {
                 elements.menuToggle.setAttribute(
                     "aria-expanded",
-                    sidebarOpen
-                        ? "true"
-                        : "false"
+                    "true"
                 );
             }
 
             if (
-                elements.overlay
+                elements.backdrop
             ) {
-                elements.overlay.hidden =
-                    !sidebarOpen;
+                elements.backdrop.hidden =
+                    false;
 
-                elements.overlay.setAttribute(
+                elements.backdrop.setAttribute(
                     "aria-hidden",
-                    sidebarOpen
-                        ? "false"
-                        : "true"
+                    "false"
+                );
+            }
+        }
+
+        function closeSidebar() {
+            state.sidebarOpen =
+                false;
+
+            root.classList.remove(
+                "admin-sidebar-open"
+            );
+
+            if (
+                elements.sidebar
+            ) {
+                elements.sidebar.classList.remove(
+                    "is-open"
                 );
             }
 
-            documentObject
-                .documentElement
-                .classList
-                .toggle(
-                    "admin-menu-open",
-                    sidebarOpen
+            if (
+                elements.menuToggle
+            ) {
+                elements.menuToggle.setAttribute(
+                    "aria-expanded",
+                    "false"
                 );
+            }
+
+            if (
+                elements.backdrop
+            ) {
+                elements.backdrop.hidden =
+                    true;
+
+                elements.backdrop.setAttribute(
+                    "aria-hidden",
+                    "true"
+                );
+            }
+        }
+
+        function toggleSidebar() {
+            if (
+                state.sidebarOpen
+            ) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
         }
 
         /* ==================================================
@@ -796,174 +786,89 @@
         ================================================== */
 
         async function signOut() {
+            const auth =
+                resolveFirebaseAuth();
+
             if (
                 !auth ||
                 typeof auth.signOut !==
                     "function"
             ) {
                 throw new AdminShellError(
-                    "admin-shell/signout-unavailable",
-                    "Sign-out is unavailable."
+                    "admin-shell/auth-unavailable",
+                    "Firebase Authentication is unavailable."
                 );
             }
-
-            setButtonBusy(
-                elements.signOutButton,
-                true
-            );
 
             try {
                 await auth.signOut();
 
-                redirect(
-                    settings.loginPath
-                );
+                if (
+                    state.guard &&
+                    typeof state.guard.redirectToLogin ===
+                        "function"
+                ) {
+                    state.guard
+                        .redirectToLogin();
 
-                return true;
+                    return;
+                }
+
+                if (
+                    global.location
+                ) {
+                    global.location.href =
+                        "/";
+                }
             } catch (
                 error
             ) {
-                throw normalizeAdminShellError(
+                throw normalizeShellError(
                     error,
                     "admin-shell/signout-failed",
                     "Unable to sign out."
                 );
-            } finally {
-                setButtonBusy(
-                    elements.signOutButton,
-                    false
-                );
             }
-        }
-
-        /* ==================================================
-           ROUTER
-        ================================================== */
-
-        async function initializeRouter() {
-            if (
-                !global.LEternelAdminRouter ||
-                typeof global
-                    .LEternelAdminRouter
-                    .getAdminRouter !==
-                    "function"
-            ) {
-                return null;
-            }
-
-            const router =
-                global
-                    .LEternelAdminRouter
-                    .getAdminRouter();
-
-            if (
-                router &&
-                typeof router.init ===
-                    "function"
-            ) {
-                await router.init();
-            }
-
-            return router;
-        }
-
-        /* ==================================================
-           PAGE CONTROLLER
-        ================================================== */
-
-        async function initializePageController() {
-            const descriptor =
-                resolvePageController(
-                    documentObject
-                );
-
-            if (
-                !descriptor
-            ) {
-                return null;
-            }
-
-            const namespace =
-                global[
-                    descriptor.namespace
-                ];
-
-            if (
-                !namespace ||
-                typeof namespace[
-                    descriptor.factory
-                ] !==
-                    "function"
-            ) {
-                if (
-                    settings.strictControllerResolution
-                ) {
-                    throw new AdminShellError(
-                        "admin-shell/controller-unavailable",
-                        descriptor.namespace +
-                        " is unavailable."
-                    );
-                }
-
-                return null;
-            }
-
-            const controller =
-                namespace[
-                    descriptor.factory
-                ]();
-
-            if (
-                controller &&
-                typeof controller.init ===
-                    "function"
-            ) {
-                await controller.init();
-            }
-
-            activeController =
-                controller ||
-                null;
-
-            if (
-                descriptor.globalName
-            ) {
-                global[
-                    descriptor.globalName
-                ] =
-                    activeController;
-            }
-
-            return activeController;
         }
 
         /* ==================================================
            DATE
         ================================================== */
 
-        function setCurrentDate() {
+        function renderDate() {
             if (
-                !elements.currentDate
+                !elements.date
             ) {
                 return;
             }
 
-            elements.currentDate.textContent =
-                new Intl.DateTimeFormat(
-                    settings.locale,
-                    {
-                        day:
-                            "numeric",
+            try {
+                elements.date.textContent =
+                    new Intl.DateTimeFormat(
+                        undefined,
+                        {
+                            weekday:
+                                "long",
 
-                        month:
-                            "long",
+                            year:
+                                "numeric",
 
-                        year:
-                            "numeric"
-                    }
-                ).format(
+                            month:
+                                "long",
+
+                            day:
+                                "numeric"
+                        }
+                    ).format(
+                        new Date()
+                    );
+            } catch (
+                error
+            ) {
+                elements.date.textContent =
                     new Date()
-                );
+                        .toLocaleDateString();
+            }
         }
 
         /* ==================================================
@@ -971,332 +876,355 @@
         ================================================== */
 
         function bindEvents() {
-            bindClick(
+            bind(
                 elements.menuToggle,
+                "click",
                 toggleSidebar
             );
 
-            bindClick(
-                elements.overlay,
+            bind(
+                elements.backdrop,
+                "click",
                 closeSidebar
             );
 
-            bindClick(
-                elements.signOutButton,
-                signOut
+            bind(
+                elements.navigation,
+                "click",
+                function (
+                    event
+                ) {
+                    const link =
+                        event.target.closest(
+                            "[data-admin-route]"
+                        );
+
+                    if (
+                        link
+                    ) {
+                        closeSidebar();
+                    }
+                }
             );
 
-            const navigationLinks =
-                elements.navigationLinks;
-
-            for (
-                const link of
-                navigationLinks
-            ) {
-                const listener =
-                    function () {
-                        closeSidebar();
-                    };
-
-                link.addEventListener(
-                    "click",
-                    listener
-                );
-
-                disposers.push(
-                    function () {
-                        link.removeEventListener(
-                            "click",
-                            listener
+            bind(
+                elements.signout,
+                "click",
+                function () {
+                    signOut()
+                        .catch(
+                            reportError
                         );
+                }
+            );
+
+            if (
+                global.document
+            ) {
+                bind(
+                    global.document,
+                    "keydown",
+                    function (
+                        event
+                    ) {
+                        if (
+                            event.key ===
+                                "Escape" &&
+                            state.sidebarOpen
+                        ) {
+                            closeSidebar();
+                        }
                     }
                 );
             }
 
-            const keydownListener =
-                function (
-                    event
-                ) {
-                    if (
-                        event.key ===
-                            "Escape" &&
-                        sidebarOpen
-                    ) {
-                        closeSidebar();
+            if (
+                global.addEventListener
+            ) {
+                bind(
+                    global,
+                    "resize",
+                    function () {
+                        if (
+                            global.innerWidth >
+                            1024 &&
+                            state.sidebarOpen
+                        ) {
+                            closeSidebar();
+                        }
                     }
-                };
-
-            documentObject.addEventListener(
-                "keydown",
-                keydownListener
-            );
-
-            disposers.push(
-                function () {
-                    documentObject.removeEventListener(
-                        "keydown",
-                        keydownListener
-                    );
-                }
-            );
-
-            const resizeListener =
-                function () {
-                    if (
-                        windowObject.innerWidth >
-                        settings.mobileBreakpoint
-                    ) {
-                        closeSidebar();
-                    }
-                };
-
-            windowObject.addEventListener(
-                "resize",
-                resizeListener
-            );
-
-            disposers.push(
-                function () {
-                    windowObject.removeEventListener(
-                        "resize",
-                        resizeListener
-                    );
-                }
-            );
+                );
+            }
         }
 
-        function bindClick(
+        function bind(
             element,
+            event,
             handler
         ) {
             if (
-                !element
+                !element ||
+                typeof element.addEventListener !==
+                    "function"
             ) {
                 return;
             }
 
-            const listener =
-                function (
-                    event
-                ) {
-                    event.preventDefault();
-
-                    Promise.resolve(
-                        handler()
-                    ).catch(
-                        reportError
-                    );
-                };
-
             element.addEventListener(
-                "click",
-                listener
+                event,
+                handler
             );
 
-            disposers.push(
-                function () {
-                    element.removeEventListener(
-                        "click",
-                        listener
-                    );
-                }
-            );
-        }
-
-        /* ==================================================
-           SNAPSHOT
-        ================================================== */
-
-        function getSnapshot() {
-            return {
-                initialized,
-                destroyed,
-                sidebarOpen,
-                authResolved,
-
-                authenticatedUser: authenticatedUser
-                    ? {
-                          uid:
-                              authenticatedUser.uid ||
-                              null,
-
-                          email:
-                              authenticatedUser.email ||
-                              null,
-
-                          displayName:
-                              authenticatedUser.displayName ||
-                              null
-                      }
-                    : null,
-
-                administratorClaims:
-                    cloneValue(
-                        administratorClaims
-                    ),
-
-                hasActiveController:
-                    Boolean(
-                        activeController
-                    )
-            };
+            state.listeners.push({
+                element,
+                event,
+                handler
+            });
         }
 
         /* ==================================================
            PUBLIC API
         ================================================== */
 
-        const shell =
+        const api =
             Object.freeze({
-                init,
+                initialize,
                 destroy,
+
+                authorizeCurrentPage,
+
+                renderIdentity,
+                filterNavigation,
+
+                initializePageController,
 
                 openSidebar,
                 closeSidebar,
                 toggleSidebar,
-                setSidebarOpen,
 
-                populateIdentity,
                 signOut,
+                renderDate,
 
-                initializeRouter,
-                initializePageController,
-
-                getSnapshot,
-
-                get activeController() {
-                    return activeController;
-                },
-
-                get user() {
-                    return authenticatedUser;
-                },
-
-                get claims() {
-                    return cloneValue(
-                        administratorClaims
-                    );
-                },
-
+                state,
                 elements,
                 options:
                     settings
             });
 
-        return shell;
+        return api;
     }
 
     /* ======================================================
-       PAGE CONTROLLER RESOLUTION
+       ROUTER
     ====================================================== */
 
-    function resolvePageController(
-        documentObject
+    function resolveRouter(
+        provided
     ) {
-        const definitions = [
-            {
-                selector:
-                    "[data-admin-products]",
-
-                namespace:
-                    "LEternelProductsController",
-
-                factory:
-                    "getProductsController",
-
-                globalName:
-                    "LEternelProductsAdmin"
-            },
-
-            {
-                selector:
-                    "[data-admin-orders]",
-
-                namespace:
-                    "LEternelOrdersController",
-
-                factory:
-                    "getOrdersController",
-
-                globalName:
-                    "LEternelOrdersAdmin"
-            },
-
-            {
-                selector:
-                    "[data-admin-customers]",
-
-                namespace:
-                    "LEternelCustomersController",
-
-                factory:
-                    "getCustomersController",
-
-                globalName:
-                    "LEternelCustomersAdmin"
-            },
-
-            {
-                selector:
-                    "[data-admin-inventory]",
-
-                namespace:
-                    "LEternelInventoryController",
-
-                factory:
-                    "getInventoryController",
-
-                globalName:
-                    "LEternelInventoryAdmin"
-            },
-
-            {
-                selector:
-                    "[data-admin-operations]",
-
-                namespace:
-                    "LEternelOperationsController",
-
-                factory:
-                    "getOperationsController",
-
-                globalName:
-                    "LEternelOperationsAdmin"
-            },
-
-            {
-                selector:
-                    "[data-active-admin-route='dashboard']",
-
-                namespace:
-                    "LEternelDashboardController",
-
-                factory:
-                    "getDashboardController",
-
-                globalName:
-                    "LEternelDashboardAdmin"
-            }
-        ];
-
-        for (
-            const definition of
-            definitions
+        if (
+            provided
         ) {
-            if (
-                documentObject.querySelector(
-                    definition.selector
-                )
-            ) {
-                return definition;
-            }
+            return provided;
+        }
+
+        if (
+            !global.LEternelAdminRouter ||
+            typeof global
+                .LEternelAdminRouter
+                .getAdminRouter !==
+                "function"
+        ) {
+            return null;
+        }
+
+        return global
+            .LEternelAdminRouter
+            .getAdminRouter();
+    }
+
+    function resolveCurrentRoute(
+        router
+    ) {
+        if (
+            router &&
+            typeof router.getCurrentRoute ===
+                "function"
+        ) {
+            return router
+                .getCurrentRoute();
         }
 
         return null;
     }
 
     /* ======================================================
-       OPTIONS
+       AUTH GUARD
+    ====================================================== */
+
+    function resolveAuthGuard(
+        provided
+    ) {
+        if (
+            provided
+        ) {
+            return provided;
+        }
+
+        if (
+            !global.LEternelAdminAuthGuard ||
+            typeof global
+                .LEternelAdminAuthGuard
+                .getAdminAuthGuard !==
+                "function"
+        ) {
+            return null;
+        }
+
+        return global
+            .LEternelAdminAuthGuard
+            .getAdminAuthGuard();
+    }
+
+    /* ======================================================
+       FIREBASE
+    ====================================================== */
+
+    function resolveFirebaseAuth() {
+        if (
+            !global.firebase ||
+            typeof global.firebase.auth !==
+                "function"
+        ) {
+            return null;
+        }
+
+        try {
+            return global.firebase
+                .auth();
+        } catch (
+            error
+        ) {
+            reportError(
+                error
+            );
+
+            return null;
+        }
+    }
+
+    /* ======================================================
+       ELEMENT COLLECTION
+    ====================================================== */
+
+    function collectElements(
+        root,
+        selectors
+    ) {
+        return {
+            sidebar:
+                root.querySelector(
+                    selectors.sidebar
+                ),
+
+            menuToggle:
+                root.querySelector(
+                    selectors.menuToggle
+                ),
+
+            backdrop:
+                root.querySelector(
+                    selectors.backdrop
+                ),
+
+            navigation:
+                root.querySelector(
+                    selectors.navigation
+                ),
+
+            userName:
+                root.querySelector(
+                    selectors.userName
+                ),
+
+            userEmail:
+                root.querySelector(
+                    selectors.userEmail
+                ),
+
+            avatar:
+                root.querySelector(
+                    selectors.avatar
+                ),
+
+            signout:
+                root.querySelector(
+                    selectors.signout
+                ),
+
+            content:
+                root.querySelector(
+                    selectors.content
+                ),
+
+            date:
+                root.querySelector(
+                    selectors.date
+                )
+        };
+    }
+
+    /* ======================================================
+       PERMISSION HELPERS
+    ====================================================== */
+
+    function permissionMatches(
+        granted,
+        required
+    ) {
+        const grant =
+            normalizePermission(
+                granted
+            );
+
+        const need =
+            normalizePermission(
+                required
+            );
+
+        if (
+            !grant ||
+            !need
+        ) {
+            return false;
+        }
+
+        if (
+            grant ===
+                "*" ||
+            grant ===
+                need
+        ) {
+            return true;
+        }
+
+        if (
+            grant.endsWith(
+                ".*"
+            )
+        ) {
+            return need.startsWith(
+                grant.slice(
+                    0,
+                    -1
+                )
+            );
+        }
+
+        return false;
+    }
+
+    /* ======================================================
+       NORMALIZATION
     ====================================================== */
 
     function normalizeOptions(
@@ -1307,75 +1235,17 @@
             {};
 
         return Object.freeze({
-            document:
-                source.document ||
+            root:
+                source.root ||
                 null,
 
-            window:
-                source.window ||
+            router:
+                source.router ||
                 null,
 
-            auth:
-                source.auth ||
+            guard:
+                source.guard ||
                 null,
-
-            requireAuthentication:
-                source.requireAuthentication !==
-                    false,
-
-            requireAdministrator:
-                source.requireAdministrator !==
-                    false,
-
-            allowAuthenticatedFallback:
-                source.allowAuthenticatedFallback ===
-                    true,
-
-            forceTokenRefresh:
-                source.forceTokenRefresh ===
-                    true,
-
-            strictControllerResolution:
-                source.strictControllerResolution ===
-                    true,
-
-            loginPath:
-                normalizePath(
-                    source.loginPath,
-                    DEFAULT_LOGIN_PATH
-                ),
-
-            unauthorizedPath:
-                normalizePath(
-                    source.unauthorizedPath,
-                    DEFAULT_UNAUTHORIZED_PATH
-                ),
-
-            authenticationTimeoutMs:
-                normalizePositiveInteger(
-                    source.authenticationTimeoutMs,
-                    15000,
-                    "Authentication timeout"
-                ),
-
-            mobileBreakpoint:
-                normalizePositiveInteger(
-                    source.mobileBreakpoint,
-                    1024,
-                    "Mobile breakpoint"
-                ),
-
-            locale:
-                String(
-                    source.locale ||
-                    "en-GB"
-                ).trim() ||
-                "en-GB",
-
-            allowedAdminEmails:
-                normalizeEmailList(
-                    source.allowedAdminEmails
-                ),
 
             selectors:
                 Object.freeze(
@@ -1389,24 +1259,51 @@
         });
     }
 
-    function normalizePath(
-        value,
-        fallback
+    function normalizeOptionalString(
+        value
     ) {
+        if (
+            value ===
+                undefined ||
+            value ===
+                null
+        ) {
+            return null;
+        }
+
         const normalized =
             String(
-                value ||
-                fallback
+                value
             ).trim();
 
         return normalized ||
-            fallback;
+            null;
     }
 
-    function normalizePositiveInteger(
-        value,
-        fallback,
-        label
+    function normalizeRoute(
+        value
+    ) {
+        return String(
+            value ||
+            ""
+        )
+            .trim()
+            .toLowerCase();
+    }
+
+    function normalizePermission(
+        value
+    ) {
+        return String(
+            value ||
+            ""
+        )
+            .trim()
+            .toLowerCase();
+    }
+
+    function normalizeStringList(
+        value
     ) {
         if (
             value ===
@@ -1416,50 +1313,27 @@
             value ===
                 ""
         ) {
-            return fallback;
-        }
-
-        const normalized =
-            Number(
-                value
-            );
-
-        if (
-            !Number.isInteger(
-                normalized
-            ) ||
-            normalized <=
-                0
-        ) {
-            throw new TypeError(
-                label +
-                " must be a positive integer."
-            );
-        }
-
-        return normalized;
-    }
-
-    function normalizeEmailList(
-        value
-    ) {
-        if (
-            !Array.isArray(
-                value
-            )
-        ) {
             return [];
         }
 
+        const values =
+            Array.isArray(
+                value
+            )
+                ? value
+                : [
+                      value
+                  ];
+
         return Array.from(
             new Set(
-                value
+                values
                     .map(
                         function (
-                            email
+                            item
                         ) {
                             return String(
-                                email ||
+                                item ||
                                 ""
                             )
                                 .trim()
@@ -1474,118 +1348,12 @@
     }
 
     /* ======================================================
-       FIREBASE
+       TEXT
     ====================================================== */
-
-    function resolveAuth() {
-        if (
-            global.firebase &&
-            typeof global.firebase.auth ===
-                "function"
-        ) {
-            return global.firebase.auth();
-        }
-
-        return null;
-    }
-
-    /* ======================================================
-       DOM
-    ====================================================== */
-
-    function resolveElements(
-        documentObject,
-        selectors
-    ) {
-        return {
-            shell:
-                documentObject.querySelector(
-                    selectors.shell
-                ),
-
-            sidebar:
-                documentObject.querySelector(
-                    selectors.sidebar
-                ),
-
-            menuToggle:
-                documentObject.querySelector(
-                    selectors.menuToggle
-                ),
-
-            overlay:
-                documentObject.querySelector(
-                    selectors.overlay
-                ),
-
-            navigation:
-                documentObject.querySelector(
-                    selectors.navigation
-                ),
-
-            navigationLinks:
-                Array.from(
-                    documentObject.querySelectorAll(
-                        selectors.navigationLinks
-                    )
-                ),
-
-            userName:
-                documentObject.querySelector(
-                    selectors.userName
-                ),
-
-            userEmail:
-                documentObject.querySelector(
-                    selectors.userEmail
-                ),
-
-            userAvatar:
-                documentObject.querySelector(
-                    selectors.userAvatar
-                ),
-
-            signOutButton:
-                documentObject.querySelector(
-                    selectors.signOutButton
-                ),
-
-            content:
-                documentObject.querySelector(
-                    selectors.content
-                ),
-
-            currentDate:
-                documentObject.querySelector(
-                    selectors.currentDate
-                )
-        };
-    }
 
     function setText(
         element,
         value
-    ) {
-        if (
-            element
-        ) {
-            element.textContent =
-                value ===
-                    undefined ||
-                value ===
-                    null ||
-                value ===
-                    ""
-                    ? "—"
-                    : String(
-                          value
-                      );
-        }
-    }
-
-    function setButtonBusy(
-        element,
-        busy
     ) {
         if (
             !element
@@ -1593,123 +1361,69 @@
             return;
         }
 
-        element.disabled =
-            Boolean(
-                busy
-            );
+        element.textContent =
+            value ===
+                undefined ||
+            value ===
+                null
+                ? ""
+                : String(
+                      value
+                  );
+    }
 
-        element.setAttribute(
-            "aria-busy",
-            busy
-                ? "true"
-                : "false"
-        );
+    function getInitials(
+        value
+    ) {
+        const words =
+            String(
+                value ||
+                "A"
+            )
+                .trim()
+                .split(
+                    /\s+/
+                )
+                .filter(
+                    Boolean
+                );
+
+        if (
+            !words.length
+        ) {
+            return "A";
+        }
+
+        if (
+            words.length ===
+            1
+        ) {
+            return words[0]
+                .slice(
+                    0,
+                    2
+                )
+                .toUpperCase();
+        }
+
+        return (
+            words[0].charAt(
+                0
+            ) +
+            words[
+                words.length -
+                1
+            ].charAt(
+                0
+            )
+        ).toUpperCase();
     }
 
     /* ======================================================
-       HELPERS
+       ERRORS
     ====================================================== */
 
-    function createInitials(
-        name,
-        email
-    ) {
-        const normalizedName =
-            String(
-                name ||
-                ""
-            ).trim();
-
-        if (
-            normalizedName
-        ) {
-            const parts =
-                normalizedName
-                    .split(
-                        /\s+/
-                    )
-                    .filter(
-                        Boolean
-                    );
-
-            return (
-                parts[0]
-                    .charAt(
-                        0
-                    ) +
-                (
-                    parts.length >
-                        1
-                        ? parts[
-                              parts.length -
-                              1
-                          ].charAt(
-                              0
-                          )
-                        : ""
-                )
-            ).toUpperCase();
-        }
-
-        return String(
-            email ||
-            "A"
-        )
-            .charAt(
-                0
-            )
-            .toUpperCase();
-    }
-
-    function titleCase(
-        value
-    ) {
-        return String(
-            value ||
-            ""
-        )
-            .replace(
-                /[-_.]+/g,
-                " "
-            )
-            .replace(
-                /\b\w/g,
-                function (
-                    character
-                ) {
-                    return character.toUpperCase();
-                }
-            );
-    }
-
-    function appendQueryParameter(
-        path,
-        key,
-        value
-    ) {
-        const separator =
-            String(
-                path
-            ).includes(
-                "?"
-            )
-                ? "&"
-                : "?";
-
-        return (
-            path +
-            separator +
-            encodeURIComponent(
-                key
-            ) +
-            "=" +
-            encodeURIComponent(
-                value
-            )
-        );
-    }
-
-    function normalizeAdminShellError(
+    function normalizeShellError(
         error,
         fallbackCode,
         fallbackMessage
@@ -1735,16 +1449,14 @@
                   )
                 : fallbackMessage,
             {
-                originalError:
-                    error,
-
                 details:
                     error &&
                     error.details
-                        ? cloneValue(
-                              error.details
-                          )
-                        : null
+                        ? error.details
+                        : null,
+
+                originalError:
+                    error
             }
         );
     }
@@ -1762,61 +1474,6 @@
                 error
             );
         }
-    }
-
-    function cloneValue(
-        value
-    ) {
-        if (
-            value ===
-                undefined ||
-            value ===
-                null
-        ) {
-            return value;
-        }
-
-        if (
-            value instanceof Date
-        ) {
-            return value.toISOString();
-        }
-
-        if (
-            Array.isArray(
-                value
-            )
-        ) {
-            return value.map(
-                cloneValue
-            );
-        }
-
-        if (
-            typeof value ===
-                "object"
-        ) {
-            return Object.keys(
-                value
-            ).reduce(
-                function (
-                    output,
-                    key
-                ) {
-                    output[key] =
-                        cloneValue(
-                            value[
-                                key
-                            ]
-                        );
-
-                    return output;
-                },
-                {}
-            );
-        }
-
-        return value;
     }
 
     /* ======================================================
@@ -1849,7 +1506,9 @@
 
     function resetAdminShell() {
         if (
-            defaultShell
+            defaultShell &&
+            typeof defaultShell.destroy ===
+                "function"
         ) {
             defaultShell.destroy();
         }
@@ -1866,7 +1525,7 @@
                 options
             );
 
-        await shell.init();
+        await shell.initialize();
 
         return shell;
     }
@@ -1884,24 +1543,26 @@
 
             AdminShellError,
 
-            resolvePageController,
-            normalizeOptions,
-            normalizePath,
-            normalizePositiveInteger,
-            normalizeEmailList,
+            resolveRouter,
+            resolveCurrentRoute,
+            resolveAuthGuard,
+            resolveFirebaseAuth,
 
-            createInitials,
-            titleCase,
-            appendQueryParameter,
-            normalizeAdminShellError,
-            cloneValue,
+            permissionMatches,
+
+            normalizeOptions,
+            normalizeOptionalString,
+            normalizeRoute,
+            normalizePermission,
+            normalizeStringList,
+
+            getInitials,
+            normalizeShellError,
 
             constants:
                 Object.freeze({
                     DEFAULT_SELECTORS,
-                    DEFAULT_LOGIN_PATH,
-                    DEFAULT_UNAUTHORIZED_PATH,
-                    ADMIN_ROLE_NAMES
+                    ROUTE_CONTROLLERS
                 })
         });
 

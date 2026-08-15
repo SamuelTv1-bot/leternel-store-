@@ -5,130 +5,239 @@
    ADMIN ROUTER
 
    Responsibilities:
-   - Resolve admin routes
-   - Activate the correct navigation item
-   - Support direct navigation and SPA-style links
-   - Initialize page-specific controllers
+   - Detect active administrator route
+   - Normalize admin paths
+   - Resolve route metadata
+   - Highlight active navigation
+   - Expose route permissions
+   - Support SPA-like administrative navigation helpers
 ========================================================== */
 
-(function (
-    global
-) {
+(function (global) {
     /* ======================================================
-       ROUTES
+       CONSTANTS
     ====================================================== */
+
+    const ADMIN_BASE_PATH =
+        "/admin/";
 
     const ROUTES =
         Object.freeze({
             dashboard:
                 Object.freeze({
-                    key:
+                    id:
                         "dashboard",
+
+                    label:
+                        "Dashboard",
 
                     path:
                         "/admin/",
 
-                    aliases:
-                        [
-                            "/admin",
-                            "/admin/index.html"
-                        ],
+                    aliases: [
+                        "/admin",
+                        "/admin/",
+                        "/admin/index.html"
+                    ],
 
-                    title:
-                        "Dashboard"
+                    permission:
+                        "dashboard.read"
                 }),
 
             products:
                 Object.freeze({
-                    key:
+                    id:
                         "products",
+
+                    label:
+                        "Products",
 
                     path:
                         "/admin/products.html",
 
-                    aliases:
-                        [],
+                    aliases: [
+                        "/admin/products",
+                        "/admin/products/",
+                        "/admin/products.html"
+                    ],
 
-                    title:
-                        "Products"
+                    permission:
+                        "products.read"
                 }),
 
             orders:
                 Object.freeze({
-                    key:
+                    id:
                         "orders",
+
+                    label:
+                        "Orders",
 
                     path:
                         "/admin/orders.html",
 
-                    aliases:
-                        [],
+                    aliases: [
+                        "/admin/orders",
+                        "/admin/orders/",
+                        "/admin/orders.html"
+                    ],
 
-                    title:
-                        "Orders"
+                    permission:
+                        "orders.read"
                 }),
 
             customers:
                 Object.freeze({
-                    key:
+                    id:
                         "customers",
+
+                    label:
+                        "Customers",
 
                     path:
                         "/admin/customers.html",
 
-                    aliases:
-                        [],
+                    aliases: [
+                        "/admin/customers",
+                        "/admin/customers/",
+                        "/admin/customers.html"
+                    ],
 
-                    title:
-                        "Customers"
+                    permission:
+                        "customers.read"
                 }),
 
             inventory:
                 Object.freeze({
-                    key:
+                    id:
                         "inventory",
+
+                    label:
+                        "Inventory",
 
                     path:
                         "/admin/inventory.html",
 
-                    aliases:
-                        [],
+                    aliases: [
+                        "/admin/inventory",
+                        "/admin/inventory/",
+                        "/admin/inventory.html"
+                    ],
 
-                    title:
-                        "Inventory"
+                    permission:
+                        "inventory.read"
                 }),
 
             operations:
                 Object.freeze({
-                    key:
+                    id:
                         "operations",
+
+                    label:
+                        "Operations",
 
                     path:
                         "/admin/operations.html",
 
-                    aliases:
-                        [],
+                    aliases: [
+                        "/admin/operations",
+                        "/admin/operations/",
+                        "/admin/operations.html"
+                    ],
 
-                    title:
-                        "Operations"
+                    permission:
+                        "operations.read"
+                }),
+
+            administrators:
+                Object.freeze({
+                    id:
+                        "administrators",
+
+                    label:
+                        "Administrators",
+
+                    path:
+                        "/admin/administrators.html",
+
+                    aliases: [
+                        "/admin/administrators",
+                        "/admin/administrators/",
+                        "/admin/administrators.html"
+                    ],
+
+                    permission:
+                        "admins.read"
                 })
         });
 
-    /* ======================================================
-       SELECTORS
-    ====================================================== */
+    const ROUTE_IDS =
+        Object.freeze(
+            Object.keys(
+                ROUTES
+            )
+        );
+
+    const ROUTE_LIST =
+        Object.freeze(
+            ROUTE_IDS.map(
+                function (
+                    id
+                ) {
+                    return ROUTES[
+                        id
+                    ];
+                }
+            )
+        );
 
     const DEFAULT_SELECTORS =
         Object.freeze({
+            shell:
+                "[data-admin-shell]",
+
             navigation:
                 "[data-admin-nav]",
 
-            navigationLink:
-                "[data-admin-route]",
-
-            content:
-                "[data-admin-content]"
+            routeLink:
+                "[data-admin-route]"
         });
+
+    /* ======================================================
+       ERROR
+    ====================================================== */
+
+    class AdminRouterError extends Error {
+        constructor(
+            code,
+            message,
+            options
+        ) {
+            super(
+                message ||
+                "Administrator routing failed."
+            );
+
+            this.name =
+                "AdminRouterError";
+
+            this.code =
+                code ||
+                "admin-router/unknown";
+
+            const settings =
+                options ||
+                {};
+
+            this.details =
+                settings.details ||
+                null;
+
+            this.originalError =
+                settings.originalError ||
+                null;
+        }
+    }
 
     /* ======================================================
        ROUTER FACTORY
@@ -138,388 +247,363 @@
         options
     ) {
         const settings =
-            normalizeRouterOptions(
+            normalizeOptions(
                 options
             );
 
-        const windowObject =
-            settings.window ||
-            global;
+        const state = {
+            initialized:
+                false,
 
-        const documentObject =
-            settings.document ||
-            windowObject.document;
+            activeRoute:
+                null,
 
-        if (
-            !documentObject
-        ) {
-            throw new Error(
-                "Admin router requires a document."
-            );
-        }
+            activeRouteId:
+                null,
 
-        let initialized =
-            false;
-
-        let destroyed =
-            false;
-
-        let activeRoute =
-            null;
-
-        const disposers =
-            [];
+            currentPath:
+                null
+        };
 
         /* ==================================================
            INITIALIZE
         ================================================== */
 
-        async function init() {
+        function initialize() {
             if (
-                initialized
+                state.initialized
             ) {
-                return router;
+                return api;
             }
 
-            assertActive();
+            refresh();
 
-            initialized =
+            state.initialized =
                 true;
 
-            bindNavigation();
-
-            activeRoute =
-                resolveCurrentRoute(
-                    windowObject.location
-                );
-
-            updateNavigation(
-                activeRoute
-            );
-
-            updateDocumentTitle(
-                documentObject,
-                activeRoute
-            );
-
-            await initializeRoute(
-                activeRoute
-            );
-
-            return router;
+            return api;
         }
 
         /* ==================================================
-           DESTROY
+           REFRESH
         ================================================== */
 
-        function destroy() {
-            if (
-                destroyed
+        function refresh(
+            path
+        ) {
+            const currentPath =
+                normalizePath(
+                    path ||
+                    getCurrentPath()
+                );
+
+            const route =
+                resolveRoute(
+                    currentPath
+                );
+
+            state.currentPath =
+                currentPath;
+
+            state.activeRoute =
+                route;
+
+            state.activeRouteId =
+                route
+                    ? route.id
+                    : null;
+
+            applyActiveNavigation(
+                route
+            );
+
+            applyShellRoute(
+                route
+            );
+
+            return route;
+        }
+
+        /* ==================================================
+           ROUTE RESOLUTION
+        ================================================== */
+
+        function getRoute(
+            routeId
+        ) {
+            const normalized =
+                normalizeRouteId(
+                    routeId
+                );
+
+            return normalized &&
+                ROUTES[
+                    normalized
+                ]
+                ? ROUTES[
+                      normalized
+                  ]
+                : null;
+        }
+
+        function resolveRoute(
+            path
+        ) {
+            const normalizedPath =
+                normalizePath(
+                    path
+                );
+
+            for (
+                const route of
+                ROUTE_LIST
             ) {
-                return;
-            }
-
-            destroyed =
-                true;
-
-            while (
-                disposers.length
-            ) {
-                const dispose =
-                    disposers.pop();
-
-                try {
-                    dispose();
-                } catch (
-                    error
+                if (
+                    route.aliases.some(
+                        function (
+                            alias
+                        ) {
+                            return normalizePath(
+                                alias
+                            ) ===
+                                normalizedPath;
+                        }
+                    )
                 ) {
-                    reportError(
-                        error
-                    );
+                    return route;
                 }
             }
 
-            initialized =
-                false;
-
-            activeRoute =
-                null;
+            return null;
         }
 
-        function assertActive() {
-            if (
-                destroyed
-            ) {
-                throw new Error(
-                    "Admin router has been destroyed."
+        function resolveRouteId(
+            path
+        ) {
+            const route =
+                resolveRoute(
+                    path
                 );
+
+            return route
+                ? route.id
+                : null;
+        }
+
+        /* ==================================================
+           CURRENT ROUTE
+        ================================================== */
+
+        function getCurrentRoute() {
+            if (
+                state.activeRoute
+            ) {
+                return state.activeRoute;
             }
+
+            return refresh();
+        }
+
+        function getCurrentRouteId() {
+            const route =
+                getCurrentRoute();
+
+            return route
+                ? route.id
+                : null;
+        }
+
+        function getCurrentPermission() {
+            const route =
+                getCurrentRoute();
+
+            return route
+                ? route.permission
+                : null;
+        }
+
+        /* ==================================================
+           ROUTE PERMISSIONS
+        ================================================== */
+
+        function getRoutePermission(
+            routeOrId
+        ) {
+            if (
+                !routeOrId
+            ) {
+                return null;
+            }
+
+            if (
+                typeof routeOrId ===
+                "object"
+            ) {
+                return routeOrId.permission ||
+                    null;
+            }
+
+            const route =
+                getRoute(
+                    routeOrId
+                ) ||
+                resolveRoute(
+                    routeOrId
+                );
+
+            return route
+                ? route.permission
+                : null;
+        }
+
+        function routeRequiresPermission(
+            routeOrId
+        ) {
+            return Boolean(
+                getRoutePermission(
+                    routeOrId
+                )
+            );
         }
 
         /* ==================================================
            NAVIGATION
         ================================================== */
 
-        function bindNavigation() {
-            const links =
-                documentObject
-                    .querySelectorAll(
-                        settings
-                            .selectors
-                            .navigationLink
-                    );
-
-            for (
-                const link of
-                links
-            ) {
-                const listener =
-                    function (
-                        event
-                    ) {
-                        const routeKey =
-                            link.getAttribute(
-                                "data-admin-route"
-                            );
-
-                        const route =
-                            ROUTES[
-                                routeKey
-                            ];
-
-                        if (
-                            !route
-                        ) {
-                            return;
-                        }
-
-                        const href =
-                            link.getAttribute(
-                                "href"
-                            );
-
-                        if (
-                            shouldUseNativeNavigation(
-                                event,
-                                link,
-                                href
-                            )
-                        ) {
-                            return;
-                        }
-
-                        event.preventDefault();
-
-                        navigate(
-                            route.key
-                        ).catch(
-                            reportError
-                        );
-                    };
-
-                link.addEventListener(
-                    "click",
-                    listener
-                );
-
-                disposers.push(
-                    function () {
-                        link.removeEventListener(
-                            "click",
-                            listener
-                        );
-                    }
-                );
-            }
-
-            const popstateListener =
-                function () {
-                    handleLocationChange()
-                        .catch(
-                            reportError
-                        );
-                };
-
-            windowObject
-                .addEventListener(
-                    "popstate",
-                    popstateListener
-                );
-
-            disposers.push(
-                function () {
-                    windowObject
-                        .removeEventListener(
-                            "popstate",
-                            popstateListener
-                        );
-                }
-            );
-        }
-
-        /* ==================================================
-           NAVIGATE
-        ================================================== */
-
-        async function navigate(
-            routeKey,
+        function navigate(
+            routeOrPath,
             options
         ) {
-            assertActive();
-
-            const route =
-                resolveRouteByKey(
-                    routeKey
-                );
-
-            const navOptions =
+            const navigationOptions =
                 options ||
                 {};
 
-            if (
-                navOptions.fullReload ===
-                true
-            ) {
-                windowObject.location.href =
-                    route.path;
+            let path =
+                null;
 
-                return route;
-            }
-
-            const currentPath =
-                normalizePath(
-                    windowObject
-                        .location
-                        .pathname
-                );
-
-            const targetPath =
-                normalizePath(
-                    route.path
-                );
-
-            if (
-                currentPath !==
-                targetPath
-            ) {
-                if (
-                    navOptions.replace ===
-                    true
-                ) {
-                    windowObject
-                        .history
-                        .replaceState(
-                            {
-                                route:
-                                    route.key
-                            },
-                            "",
-                            route.path
-                        );
-                } else {
-                    windowObject
-                        .history
-                        .pushState(
-                            {
-                                route:
-                                    route.key
-                            },
-                            "",
-                            route.path
-                        );
-                }
-            }
-
-            await handleLocationChange();
-
-            return route;
-        }
-
-        /* ==================================================
-           LOCATION CHANGE
-        ================================================== */
-
-        async function handleLocationChange() {
             const route =
-                resolveCurrentRoute(
-                    windowObject.location
+                getRoute(
+                    routeOrPath
                 );
 
             if (
-                activeRoute &&
-                activeRoute.key ===
-                    route.key
+                route
             ) {
-                updateNavigation(
-                    route
-                );
-
-                updateDocumentTitle(
-                    documentObject,
-                    route
-                );
-
-                return route;
+                path =
+                    route.path;
+            } else if (
+                typeof routeOrPath ===
+                "string"
+            ) {
+                path =
+                    normalizePath(
+                        routeOrPath
+                    );
             }
 
-            activeRoute =
-                route;
+            if (
+                !path
+            ) {
+                throw new AdminRouterError(
+                    "admin-router/invalid-route",
+                    "Administrator route is invalid."
+                );
+            }
 
-            updateNavigation(
-                route
+            if (
+                !global.location
+            ) {
+                return path;
+            }
+
+            if (
+                navigationOptions.replace ===
+                true &&
+                typeof global.location.replace ===
+                    "function"
+            ) {
+                global.location.replace(
+                    path
+                );
+
+                return path;
+            }
+
+            if (
+                navigationOptions.assign ===
+                true &&
+                typeof global.location.assign ===
+                    "function"
+            ) {
+                global.location.assign(
+                    path
+                );
+
+                return path;
+            }
+
+            global.location.href =
+                path;
+
+            return path;
+        }
+
+        function navigateToDashboard(
+            options
+        ) {
+            return navigate(
+                "dashboard",
+                options
             );
-
-            updateDocumentTitle(
-                documentObject,
-                route
-            );
-
-            await initializeRoute(
-                route
-            );
-
-            return route;
         }
 
         /* ==================================================
-           NAV ACTIVE STATE
+           ACTIVE NAVIGATION
         ================================================== */
 
-        function updateNavigation(
+        function applyActiveNavigation(
             route
         ) {
+            if (
+                !global.document
+            ) {
+                return;
+            }
+
+            const selector =
+                settings.selectors
+                    .routeLink;
+
             const links =
-                documentObject
+                global.document
                     .querySelectorAll(
-                        settings
-                            .selectors
-                            .navigationLink
+                        selector
                     );
 
             for (
                 const link of
                 links
             ) {
-                const routeKey =
-                    link.getAttribute(
-                        "data-admin-route"
+                const routeId =
+                    normalizeRouteId(
+                        link.dataset
+                            .adminRoute
                     );
 
-                const active =
+                const isActive =
                     Boolean(
                         route &&
-                        route.key ===
-                            routeKey
+                        route.id ===
+                            routeId
                     );
 
                 link.classList.toggle(
                     "is-active",
-                    active
+                    isActive
                 );
 
                 if (
-                    active
+                    isActive
                 ) {
                     link.setAttribute(
                         "aria-current",
@@ -533,207 +617,148 @@
             }
         }
 
+        function applyShellRoute(
+            route
+        ) {
+            if (
+                !global.document
+            ) {
+                return;
+            }
+
+            const shell =
+                global.document
+                    .querySelector(
+                        settings.selectors
+                            .shell
+                    );
+
+            if (
+                !shell
+            ) {
+                return;
+            }
+
+            if (
+                route
+            ) {
+                shell.dataset
+                    .activeAdminRoute =
+                    route.id;
+            } else {
+                delete shell.dataset
+                    .activeAdminRoute;
+            }
+        }
+
         /* ==================================================
-           ROUTE INITIALIZATION
+           ROUTE CHECKS
         ================================================== */
 
-        async function initializeRoute(
-            route
+        function isRoute(
+            routeId
         ) {
-            if (
-                !route
-            ) {
-                return;
-            }
+            const current =
+                getCurrentRouteId();
 
-            switch (
-                route.key
-            ) {
-                case "operations":
-                    await initializeOperationsRoute();
-                    break;
-
-                default:
-                    initializeGenericRoute(
-                        route
-                    );
-                    break;
-            }
-        }
-
-        async function initializeOperationsRoute() {
-            if (
-                !documentObject
-                    .querySelector(
-                        "[data-admin-operations]"
-                    )
-            ) {
-                return;
-            }
-
-            if (
-                !global
-                    .LEternelOperationsController
-            ) {
-                return;
-            }
-
-            const controller =
-                global
-                    .LEternelOperationsController
-                    .getOperationsController();
-
-            await controller.init();
-
-            global
-                .LEternelOperationsAdmin =
-                controller;
-        }
-
-        function initializeGenericRoute(
-            route
-        ) {
-            const content =
-                documentObject
-                    .querySelector(
-                        settings
-                            .selectors
-                            .content
-                    );
-
-            if (
-                content
-            ) {
-                content.setAttribute(
-                    "data-active-admin-route",
-                    route.key
+            return current ===
+                normalizeRouteId(
+                    routeId
                 );
-            }
+        }
+
+        function isAdminPath(
+            path
+        ) {
+            const normalized =
+                normalizePath(
+                    path ||
+                    getCurrentPath()
+                );
+
+            return (
+                normalized ===
+                    "/admin" ||
+                normalized.startsWith(
+                    ADMIN_BASE_PATH
+                )
+            );
         }
 
         /* ==================================================
-           SNAPSHOT
+           PUBLIC API
         ================================================== */
 
-        function getSnapshot() {
-            return {
-                initialized:
-                    initialized,
-
-                destroyed:
-                    destroyed,
-
-                activeRoute:
-                    activeRoute
-                        ? Object.assign(
-                              {},
-                              activeRoute
-                          )
-                        : null
-            };
-        }
-
-        /* ==================================================
-           ROUTER
-        ================================================== */
-
-        const router =
+        const api =
             Object.freeze({
-                init,
-                destroy,
+                initialize,
+                refresh,
+
+                getRoute,
+                resolveRoute,
+                resolveRouteId,
+
+                getCurrentRoute,
+                getCurrentRouteId,
+                getCurrentPermission,
+
+                getRoutePermission,
+                routeRequiresPermission,
+
                 navigate,
-                handleLocationChange,
-                updateNavigation,
-                initializeRoute,
-                getSnapshot,
+                navigateToDashboard,
 
-                get activeRoute() {
-                    return activeRoute;
-                },
+                applyActiveNavigation,
+                applyShellRoute,
 
-                routes:
-                    ROUTES,
+                isRoute,
+                isAdminPath,
 
+                state,
                 options:
                     settings
             });
 
-        return router;
+        return api;
     }
 
     /* ======================================================
-       ROUTE RESOLUTION
+       NORMALIZATION
     ====================================================== */
 
-    function resolveCurrentRoute(
-        locationObject
+    function normalizeOptions(
+        options
     ) {
-        const pathname =
-            normalizePath(
-                locationObject &&
-                locationObject.pathname
-            );
+        const source =
+            options ||
+            {};
 
-        const routes =
-            Object.values(
-                ROUTES
-            );
-
-        for (
-            const route of
-            routes
-        ) {
-            if (
-                normalizePath(
-                    route.path
-                ) ===
-                pathname
-            ) {
-                return route;
-            }
-
-            for (
-                const alias of
-                route.aliases
-            ) {
-                if (
-                    normalizePath(
-                        alias
-                    ) ===
-                    pathname
-                ) {
-                    return route;
-                }
-            }
-        }
-
-        return ROUTES.dashboard;
+        return Object.freeze({
+            selectors:
+                Object.freeze(
+                    Object.assign(
+                        {},
+                        DEFAULT_SELECTORS,
+                        source.selectors ||
+                        {}
+                    )
+                )
+        });
     }
 
-    function resolveRouteByKey(
-        routeKey
+    function normalizeRouteId(
+        value
     ) {
-        const key =
+        const normalized =
             String(
-                routeKey ||
+                value ||
                 ""
-            ).trim();
+            )
+                .trim()
+                .toLowerCase();
 
-        const route =
-            ROUTES[
-                key
-            ];
-
-        if (
-            !route
-        ) {
-            throw new Error(
-                "Unknown admin route: " +
-                key
-            );
-        }
-
-        return route;
+        return normalized ||
+            null;
     }
 
     function normalizePath(
@@ -743,10 +768,42 @@
             String(
                 value ||
                 "/"
-            )
-                .trim()
-                .split("?")[0]
-                .split("#")[0];
+            ).trim();
+
+        if (
+            !path
+        ) {
+            path =
+                "/";
+        }
+
+        try {
+            if (
+                /^https?:\/\//i.test(
+                    path
+                )
+            ) {
+                const url =
+                    new URL(
+                        path
+                    );
+
+                path =
+                    url.pathname;
+            }
+        } catch (
+            error
+        ) {
+            /* Ignore invalid absolute URL and use raw path. */
+        }
+
+        path =
+            path.split(
+                "?"
+            )[0]
+                .split(
+                    "#"
+                )[0];
 
         if (
             !path.startsWith(
@@ -760,7 +817,7 @@
 
         path =
             path.replace(
-                /\/+/g,
+                /\/{2,}/g,
                 "/"
             );
 
@@ -782,143 +839,18 @@
     }
 
     /* ======================================================
-       DOCUMENT TITLE
+       LOCATION
     ====================================================== */
 
-    function updateDocumentTitle(
-        documentObject,
-        route
-    ) {
+    function getCurrentPath() {
         if (
-            !documentObject ||
-            !route
+            !global.location
         ) {
-            return;
+            return "/";
         }
 
-        documentObject.title =
-            "L'ÉTERNEL Admin · " +
-            route.title;
-    }
-
-    /* ======================================================
-       NATIVE NAVIGATION
-    ====================================================== */
-
-    function shouldUseNativeNavigation(
-        event,
-        link,
-        href
-    ) {
-        if (
-            !event ||
-            !link
-        ) {
-            return true;
-        }
-
-        if (
-            event.defaultPrevented
-        ) {
-            return true;
-        }
-
-        if (
-            event.button !==
-                undefined &&
-            event.button !==
-                0
-        ) {
-            return true;
-        }
-
-        if (
-            event.metaKey ||
-            event.ctrlKey ||
-            event.shiftKey ||
-            event.altKey
-        ) {
-            return true;
-        }
-
-        if (
-            link.target &&
-            link.target !==
-                "_self"
-        ) {
-            return true;
-        }
-
-        if (
-            link.hasAttribute(
-                "download"
-            )
-        ) {
-            return true;
-        }
-
-        if (
-            !href ||
-            href.startsWith(
-                "#"
-            )
-        ) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /* ======================================================
-       OPTIONS
-    ====================================================== */
-
-    function normalizeRouterOptions(
-        options
-    ) {
-        const source =
-            options ||
-            {};
-
-        return Object.freeze({
-            window:
-                source.window ||
-                null,
-
-            document:
-                source.document ||
-                null,
-
-            selectors:
-                Object.freeze(
-                    Object.assign(
-                        {},
-                        DEFAULT_SELECTORS,
-                        source.selectors ||
-                        {}
-                    )
-                )
-        });
-    }
-
-    /* ======================================================
-       ERROR REPORTING
-    ====================================================== */
-
-    function reportError(
-        error
-    ) {
-        if (
-            global.console &&
-            typeof global.console
-                .error ===
-                "function"
-        ) {
-            global.console.error(
-                "Admin router error.",
-                error
-            );
-        }
+        return global.location.pathname ||
+            "/";
     }
 
     /* ======================================================
@@ -950,14 +882,21 @@
     }
 
     function resetAdminRouter() {
-        if (
-            defaultRouter
-        ) {
-            defaultRouter.destroy();
-        }
-
         defaultRouter =
             null;
+    }
+
+    function bootstrap(
+        options
+    ) {
+        const router =
+            getAdminRouter(
+                options
+            );
+
+        router.initialize();
+
+        return router;
     }
 
     /* ======================================================
@@ -969,17 +908,70 @@
             createAdminRouter,
             getAdminRouter,
             resetAdminRouter,
+            bootstrap,
 
-            resolveCurrentRoute,
-            resolveRouteByKey,
+            AdminRouterError,
+
+            normalizeOptions,
+            normalizeRouteId,
             normalizePath,
-            updateDocumentTitle,
-            shouldUseNativeNavigation,
-            normalizeRouterOptions,
+            getCurrentPath,
+
+            getRoute(
+                routeId
+            ) {
+                const id =
+                    normalizeRouteId(
+                        routeId
+                    );
+
+                return id &&
+                    ROUTES[
+                        id
+                    ]
+                    ? ROUTES[
+                          id
+                      ]
+                    : null;
+            },
+
+            resolveRoute(
+                path
+            ) {
+                const normalizedPath =
+                    normalizePath(
+                        path
+                    );
+
+                for (
+                    const route of
+                    ROUTE_LIST
+                ) {
+                    if (
+                        route.aliases.some(
+                            function (
+                                alias
+                            ) {
+                                return normalizePath(
+                                    alias
+                                ) ===
+                                    normalizedPath;
+                            }
+                        )
+                    ) {
+                        return route;
+                    }
+                }
+
+                return null;
+            },
 
             constants:
                 Object.freeze({
+                    ADMIN_BASE_PATH,
                     ROUTES,
+                    ROUTE_IDS,
+                    ROUTE_LIST,
                     DEFAULT_SELECTORS
                 })
         });
