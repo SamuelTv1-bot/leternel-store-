@@ -1,4 +1,4 @@
-```javascript
+javascript
 "use strict";
 
 /* ==========================================================
@@ -297,4 +297,3 @@
         firebaseConfig.projectId
     );
 })();
-```
