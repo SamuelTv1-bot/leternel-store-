@@ -2452,19 +2452,28 @@ FIREBASE SDK (v8)
 APPLICATION SCRIPTS
 ====================================================== -->
 
+<!-- Core Root Scripts -->
 <script src="firebase.js"></script>
-<script src="app.js"></script>
 <script src="utils.js"></script>
 <script src="router.js"></script>
-<script src="auth.js"></script>
 <script src="products.js"></script>
 <script src="cart.js"></script>
 <script src="wishlist.js"></script>
 <script src="checkout.js"></script>
 <script src="profile.js"></script>
-<script src="admin.js"></script>
 <script src="search.js"></script>
 <script src="ui.js"></script>
+
+<!-- App & Auth (Located inside public/js/) -->
+<script src="public/js/app.js"></script>
+<script src="public/js/auth.js"></script>
+
+<!-- Admin Modules (Located inside public/js/admin/) -->
+<script src="public/js/admin/services/admin-auth-service.js"></script>
+<script src="public/js/admin/services/admin-operations-service.js"></script>
+<script src="public/js/admin/admin-auth-guard.js"></script>
+<script src="public/js/admin/admin-router.js"></script>
+<script src="public/js/admin/admin-shell.js"></script>
 
 </div>
 
