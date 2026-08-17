@@ -2334,6 +2334,13 @@
 
         UI.initialized = true;
 
+        if (
+    app &&
+    typeof app.markReady === "function"
+) {
+    app.markReady();
+}
+
         document.dispatchEvent(
             new CustomEvent(
                 "ui:ready",
