@@ -306,30 +306,108 @@
     /* ======================================================
        APPLICATION READY
     ====================================================== */
+function markReady() {
+    if (App.ready) {
+        return;
+    }
 
-    function markReady() {
-        if (App.ready) {
-            return;
+    App.ready = true;
+    App.initialized = true;
+
+    /* ======================================================
+       HIDE STARTUP / SPLASH SCREEN
+    ====================================================== */
+
+    const splashSelectors = [
+        "[data-app-splash]",
+        "[data-splash]",
+        "[data-preloader]",
+        "[data-loading-screen]",
+        "#splash-screen",
+        "#preloader",
+        "#loading-screen",
+        ".splash-screen",
+        ".preloader",
+        ".loading-screen"
+    ];
+
+    splashSelectors.forEach(
+        function (selector) {
+            const elements =
+                document.querySelectorAll(
+                    selector
+                );
+
+            elements.forEach(
+                function (element) {
+                    element.classList.add(
+                        "is-hidden"
+                    );
+
+                    element.setAttribute(
+                        "aria-hidden",
+                        "true"
+                    );
+
+                    window.setTimeout(
+                        function () {
+                            if (
+                                element &&
+                                element.parentNode
+                            ) {
+                                element.parentNode.removeChild(
+                                    element
+                                );
+                            }
+                        },
+                        500
+                    );
+                }
+            );
         }
+    );
 
-        App.ready =
-            true;
+    /* ======================================================
+       RESTORE MAIN APP VISIBILITY
+    ====================================================== */
 
-        App.initialized =
-            true;
-
-        emit(
-            "app:ready",
-            {
-                app:
-                    App
-            }
+    const appWrapper =
+        document.querySelector(
+            "#app-wrapper"
         );
 
-        console.info(
-            "[App] L'ÉTERNEL Store ready."
+    if (appWrapper) {
+        appWrapper.classList.add(
+            "is-ready"
+        );
+
+        appWrapper.removeAttribute(
+            "aria-hidden"
         );
     }
+
+    document.documentElement
+        .classList.add(
+            "app-ready"
+        );
+
+    document.body
+        .classList.add(
+            "app-ready"
+        );
+
+    emit(
+        "app:ready",
+        {
+            app:
+                App
+        }
+    );
+
+    console.info(
+        "[App] L'ÉTERNEL Store ready."
+    );
+}
 
     /* ======================================================
        INITIALIZATION

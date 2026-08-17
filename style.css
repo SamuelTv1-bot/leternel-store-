@@ -15298,3 +15298,21 @@ body.utility-modal-open {
         break-inside: avoid;
     }
 }
+
+[data-app-splash].is-hidden,
+[data-splash].is-hidden,
+[data-preloader].is-hidden,
+[data-loading-screen].is-hidden,
+#splash-screen.is-hidden,
+#preloader.is-hidden,
+#loading-screen.is-hidden,
+.splash-screen.is-hidden,
+.preloader.is-hidden,
+.loading-screen.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+        opacity 0.4s ease,
+        visibility 0.4s ease;
+}
