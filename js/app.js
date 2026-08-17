@@ -359,6 +359,377 @@
     }
 
     /* ======================================================
+   CART COUNT
+====================================================== */
+
+function setCartCount(count) {
+    const normalizedCount =
+        Math.max(
+            0,
+            Number(count) || 0
+        );
+
+    App.state.cartCount =
+        normalizedCount;
+
+    const counters =
+        document.querySelectorAll(
+            [
+                "[data-cart-count]",
+                "#cartCount",
+                ".cart-count"
+            ].join(",")
+        );
+
+    counters.forEach(
+        function (element) {
+            element.textContent =
+                String(normalizedCount);
+
+            element.hidden =
+                normalizedCount <= 0;
+
+            element.setAttribute(
+                "aria-label",
+                normalizedCount +
+                (
+                    normalizedCount === 1
+                        ? " item in bag"
+                        : " items in bag"
+                )
+            );
+        }
+    );
+
+    emit(
+        "cart:count",
+        {
+            count:
+                normalizedCount
+        }
+    );
+
+    return normalizedCount;
+}
+
+
+/* ======================================================
+   TOAST NOTIFICATIONS
+====================================================== */
+
+function showToast(options) {
+    const settings =
+        typeof options === "string"
+            ? {
+                  message:
+                      options
+              }
+            : options || {};
+
+    const type =
+        settings.type ||
+        "info";
+
+    const title =
+        settings.title ||
+        "";
+
+    const message =
+        settings.message ||
+        "";
+
+    /*
+     * Allow another UI module to react to the event.
+     */
+    emit(
+        "toast:show",
+        {
+            type:
+                type,
+
+            title:
+                title,
+
+            message:
+                message
+        }
+    );
+
+    /*
+     * Basic fallback toast.
+     */
+    let container =
+        document.querySelector(
+            "[data-app-toast-container]"
+        );
+
+    if (!container) {
+        container =
+            document.createElement(
+                "div"
+            );
+
+        container.setAttribute(
+            "data-app-toast-container",
+            ""
+        );
+
+        container.style.position =
+            "fixed";
+
+        container.style.right =
+            "20px";
+
+        container.style.bottom =
+            "20px";
+
+        container.style.zIndex =
+            "99999";
+
+        container.style.display =
+            "grid";
+
+        container.style.gap =
+            "10px";
+
+        container.style.maxWidth =
+            "360px";
+
+        document.body.appendChild(
+            container
+        );
+    }
+
+    const toast =
+        document.createElement(
+            "div"
+        );
+
+    toast.setAttribute(
+        "data-app-toast",
+        type
+    );
+
+    toast.style.background =
+        "#111";
+
+    toast.style.color =
+        "#fff";
+
+    toast.style.padding =
+        "14px 16px";
+
+    toast.style.border =
+        "1px solid rgba(255,255,255,0.15)";
+
+    toast.style.fontSize =
+        "13px";
+
+    toast.style.lineHeight =
+        "1.5";
+
+    toast.style.boxShadow =
+        "0 12px 30px rgba(0,0,0,0.18)";
+
+    if (title) {
+        const heading =
+            document.createElement(
+                "strong"
+            );
+
+        heading.textContent =
+            title;
+
+        heading.style.display =
+            "block";
+
+        heading.style.marginBottom =
+            "4px";
+
+        toast.appendChild(
+            heading
+        );
+    }
+
+    if (message) {
+        const text =
+            document.createElement(
+                "span"
+            );
+
+        text.textContent =
+            message;
+
+        toast.appendChild(
+            text
+        );
+    }
+
+    container.appendChild(
+        toast
+    );
+
+    const duration =
+        Number(
+            settings.duration
+        ) ||
+        4000;
+
+    window.setTimeout(
+        function () {
+            if (
+                toast &&
+                toast.parentNode
+            ) {
+                toast.parentNode.removeChild(
+                    toast
+                );
+            }
+
+            if (
+                container &&
+                !container.children.length &&
+                container.parentNode
+            ) {
+                container.parentNode.removeChild(
+                    container
+                );
+            }
+        },
+        duration
+    );
+
+    return toast;
+}
+
+
+/* ======================================================
+   GLOBAL LOADER
+====================================================== */
+
+function showLoader(message) {
+    let loader =
+        document.querySelector(
+            "[data-app-loader]"
+        );
+
+    if (!loader) {
+        loader =
+            document.createElement(
+                "div"
+            );
+
+        loader.setAttribute(
+            "data-app-loader",
+            ""
+        );
+
+        loader.style.position =
+            "fixed";
+
+        loader.style.inset =
+            "0";
+
+        loader.style.zIndex =
+            "99998";
+
+        loader.style.display =
+            "flex";
+
+        loader.style.alignItems =
+            "center";
+
+        loader.style.justifyContent =
+            "center";
+
+        loader.style.background =
+            "rgba(10, 10, 10, 0.72)";
+
+        loader.style.backdropFilter =
+            "blur(4px)";
+
+        const content =
+            document.createElement(
+                "div"
+            );
+
+        content.setAttribute(
+            "data-app-loader-content",
+            ""
+        );
+
+        content.style.padding =
+            "20px 26px";
+
+        content.style.background =
+            "#111";
+
+        content.style.color =
+            "#fff";
+
+        content.style.fontSize =
+            "12px";
+
+        content.style.letterSpacing =
+            "0.08em";
+
+        content.style.textTransform =
+            "uppercase";
+
+        loader.appendChild(
+            content
+        );
+
+        document.body.appendChild(
+            loader
+        );
+    }
+
+    const content =
+        loader.querySelector(
+            "[data-app-loader-content]"
+        );
+
+    if (content) {
+        content.textContent =
+            message ||
+            "Loading…";
+    }
+
+    loader.hidden =
+        false;
+
+    emit(
+        "loader:show",
+        {
+            message:
+                message ||
+                "Loading…"
+        }
+    );
+
+    return loader;
+}
+
+
+function hideLoader() {
+    const loader =
+        document.querySelector(
+            "[data-app-loader]"
+        );
+
+    if (loader) {
+        loader.hidden =
+            true;
+    }
+
+    emit(
+        "loader:hide",
+        {}
+    );
+}
+
+    /* ======================================================
        PUBLIC API
     ====================================================== */
 
@@ -394,6 +765,18 @@
 
             once:
                 once,
+
+                setCartCount:
+    setCartCount,
+
+showToast:
+    showToast,
+
+showLoader:
+    showLoader,
+
+hideLoader:
+    hideLoader,
 
             markReady:
                 markReady,
