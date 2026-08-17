@@ -319,6 +319,7 @@ function markReady() {
     ====================================================== */
 
     const splashSelectors = [
+        "#page-loader",
         "[data-app-splash]",
         "[data-splash]",
         "[data-preloader]",

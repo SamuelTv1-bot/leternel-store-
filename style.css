@@ -15316,3 +15316,12 @@ body.utility-modal-open {
         opacity 0.4s ease,
         visibility 0.4s ease;
 }
+
+#page-loader.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+        opacity 0.4s ease,
+        visibility 0.4s ease;
+}
