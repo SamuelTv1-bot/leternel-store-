@@ -176,7 +176,7 @@ function cacheElements() {
         wishlistCount:
             getById("wishlistCount") ||
             getById("wishlist-count") ||
-            query("[data-wishlist-count]")
+            query("[data-wishlist-count]"),
                
     countElements: queryAll(
     "[data-wishlist-item-count]"
