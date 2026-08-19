@@ -148,11 +148,13 @@
 
     function cacheElements() {
         Cart.elements = {
-            drawer:
-                getById("cart-drawer") ||
-                query(".cart-drawer"),
+          drawer:
+    getById("cartDrawer") ||
+    getById("cart-drawer") ||
+    query(".cart-drawer") ||
+    query(".drawer#cartDrawer"),
 
-            drawerBody:
+           drawerBody:
                 getById("cart-items") ||
                 query("[data-cart-items]"),
 

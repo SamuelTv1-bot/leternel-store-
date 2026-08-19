@@ -116,45 +116,68 @@
        ELEMENT CACHE
     ====================================================== */
 
-    function cacheElements() {
-        Wishlist.elements = {
-            drawer:
-                getById("wishlist-drawer") ||
-                query(".wishlist-drawer"),
+function cacheElements() {
+    Wishlist.elements = {
 
-            drawerItems:
-                getById("wishlist-items") ||
-                query("[data-wishlist-items]"),
+        /* ==================================================
+           WISHLIST DRAWER
+        ================================================== */
 
-            drawerEmpty:
-                getById("wishlist-empty-state") ||
-                query("[data-wishlist-empty]"),
+        drawer:
+            getById("wishlistDrawer") ||
+            getById("wishlist-drawer") ||
+            query("#wishlistDrawer") ||
+            query(".wishlist-drawer"),
 
-            drawerContent:
-                getById("wishlist-content") ||
-                query("[data-wishlist-content]"),
+        drawerItems:
+            getById("wishlist-items") ||
+            query("[data-wishlist-items]"),
 
-            loading:
-                getById("wishlist-loading") ||
-                query("[data-wishlist-loading]"),
+        drawerEmpty:
+            getById("wishlist-empty") ||
+            getById("wishlist-empty-state") ||
+            query("[data-wishlist-empty]"),
 
-            clearButtons: queryAll(
-                "[data-wishlist-clear]"
+        drawerContent:
+            getById("wishlist-content") ||
+            query("[data-wishlist-content]"),
+
+        loading:
+            getById("wishlist-loading") ||
+            query("[data-wishlist-loading]"),
+
+        clearButtons:
+            queryAll("[data-wishlist-clear]"),
+
+        /* ==================================================
+           ACCOUNT WISHLIST
+        ================================================== */
+
+        accountGrid:
+            getById("account-wishlist-grid") ||
+            query("[data-account-wishlist-grid]"),
+
+        accountEmpty:
+            getById("account-wishlist-empty") ||
+            query("[data-account-wishlist-empty]"),
+
+        /* ==================================================
+           HEADER / COUNTERS
+        ================================================== */
+
+        wishlistButtons:
+            queryAll(
+                "#openWishlist, " +
+                "#mobileWishlist, " +
+                "[data-wishlist-open]"
             ),
 
-            accountGrid:
-                getById("account-wishlist-grid") ||
-                query("[data-account-wishlist-grid]"),
-
-            accountEmpty:
-                getById("account-wishlist-empty") ||
-                query("[data-account-wishlist-empty]"),
-
-            countElements: queryAll(
-                "[data-wishlist-item-count]"
-            )
-        };
-    }
+        wishlistCount:
+            getById("wishlistCount") ||
+            getById("wishlist-count") ||
+            query("[data-wishlist-count]")
+    };
+}
 
     /* ======================================================
        ITEM NORMALIZATION
@@ -1616,6 +1639,64 @@
     }
 
     function bindEvents() {
+                /* ==================================================
+           WISHLIST OPEN / CLOSE CONTROLS
+        ================================================== */
+
+        document.addEventListener(
+            "click",
+            function (event) {
+
+                const openButton =
+                    event.target.closest(
+                        "#openWishlist, " +
+                        "#mobileWishlist, " +
+                        "[data-wishlist-open]"
+                    );
+
+                if (openButton) {
+                    event.preventDefault();
+
+                    openDrawer();
+
+                    return;
+                }
+
+
+                const closeButton =
+                    event.target.closest(
+                        "#closeWishlist, " +
+                        "[data-wishlist-close]"
+                    );
+
+                if (closeButton) {
+                    event.preventDefault();
+
+                    closeDrawer();
+
+                    return;
+                }
+
+
+                const overlay =
+                    event.target.closest(
+                        "#drawerOverlay, " +
+                        ".drawer-overlay"
+                    );
+
+                if (
+                    overlay &&
+                    !event.target.closest(".drawer")
+                ) {
+                    event.preventDefault();
+
+                    closeDrawer();
+
+                    return;
+                }
+            }
+        );
+        
         document.addEventListener(
             "click",
             function (event) {
@@ -1850,6 +1931,108 @@
     }
 
     /* ======================================================
+   DRAWER CONTROL
+====================================================== */
+
+function openDrawer() {
+    const drawer = Wishlist.elements.drawer;
+
+    if (!drawer) {
+        console.warn(
+            "[Wishlist] Drawer element was not found."
+        );
+        return;
+    }
+
+    drawer.classList.add("active", "open");
+
+    drawer.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+    document.body.classList.add(
+        "no-scroll"
+    );
+
+    const overlay =
+        getById("drawerOverlay") ||
+        query(".drawer-overlay");
+
+    if (overlay) {
+        overlay.classList.add(
+            "active",
+            "open"
+        );
+
+        overlay.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+    }
+
+    render();
+}
+
+
+function closeDrawer() {
+    const drawer = Wishlist.elements.drawer;
+
+    if (!drawer) {
+        return;
+    }
+
+    drawer.classList.remove(
+        "active",
+        "open"
+    );
+
+    drawer.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+    const overlay =
+        getById("drawerOverlay") ||
+        query(".drawer-overlay");
+
+    if (overlay) {
+        overlay.classList.remove(
+            "active",
+            "open"
+        );
+
+        overlay.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+    }
+
+    document.body.classList.remove(
+        "no-scroll"
+    );
+}
+
+
+function toggleDrawer() {
+    const drawer = Wishlist.elements.drawer;
+
+    if (!drawer) {
+        return;
+    }
+
+    const isOpen =
+        drawer.classList.contains("active") ||
+        drawer.classList.contains("open");
+
+    if (isOpen) {
+        closeDrawer();
+    } else {
+        openDrawer();
+    }
+}
+
+    /* ======================================================
        PUBLIC API
     ====================================================== */
 
@@ -1859,6 +2042,10 @@
     Wishlist.remove = remove;
     Wishlist.toggle = toggle;
     Wishlist.clear = clear;
+
+    Wishlist.open = openDrawer;
+Wishlist.close = closeDrawer;
+Wishlist.toggleDrawer = toggleDrawer;
 
     Wishlist.getItems = getItems;
     Wishlist.getItem = getItem;
