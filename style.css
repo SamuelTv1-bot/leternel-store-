@@ -15325,3 +15325,500 @@ body.utility-modal-open {
         opacity 0.4s ease,
         visibility 0.4s ease;
 }
+
+/* ==========================================================
+   L'ÉTERNEL — MODAL / DRAWER / MOBILE UI REPAIR
+   Keep this at the END of style.css
+========================================================== */
+
+/* ==========================================================
+   BODY LOCK
+========================================================== */
+
+body.no-scroll,
+body.menu-open,
+body.drawer-open,
+body.modal-open {
+    overflow: hidden !important;
+}
+
+
+/* ==========================================================
+   GENERIC MODALS
+========================================================== */
+
+.modal {
+    position: fixed !important;
+    inset: 0 !important;
+
+    width: 100% !important;
+    height: 100% !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    padding: 24px !important;
+
+    background: rgba(0, 0, 0, 0.48) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+
+    z-index: 5000 !important;
+
+    transition:
+        opacity 0.3s ease,
+        visibility 0.3s ease !important;
+}
+
+.modal.active,
+.modal.open {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+
+/* ==========================================================
+   MODAL CONTENT
+========================================================== */
+
+.modal-content {
+    position: relative !important;
+
+    width: min(92vw, 520px) !important;
+    max-height: calc(100vh - 48px) !important;
+
+    overflow-y: auto !important;
+
+    background: #ffffff !important;
+
+    padding: 38px !important;
+
+    border-radius: 20px !important;
+
+    box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.18) !important;
+
+    transform: translateY(20px) scale(0.98);
+
+    transition:
+        transform 0.3s ease !important;
+}
+
+.modal.active .modal-content,
+.modal.open .modal-content {
+    transform: translateY(0) scale(1);
+}
+
+
+/* ==========================================================
+   MODAL CLOSE BUTTON
+========================================================== */
+
+.modal-close {
+    position: absolute !important;
+
+    top: 16px !important;
+    right: 18px !important;
+
+    width: 40px !important;
+    height: 40px !important;
+
+    display: grid !important;
+    place-items: center !important;
+
+    border-radius: 50% !important;
+
+    background: transparent !important;
+
+    color: #111 !important;
+
+    font-size: 28px !important;
+    line-height: 1 !important;
+
+    cursor: pointer !important;
+
+    z-index: 2 !important;
+}
+
+.modal-close:hover {
+    background: #f2f2f2 !important;
+}
+
+
+/* ==========================================================
+   AUTH MODAL
+========================================================== */
+
+#authModal .auth-content {
+    width: min(92vw, 460px) !important;
+}
+
+#authModal h2 {
+    margin-bottom: 28px !important;
+}
+
+#auth-form {
+    display: grid !important;
+    gap: 14px !important;
+}
+
+#auth-form input {
+    width: 100% !important;
+}
+
+#auth-submit {
+    margin-top: 6px !important;
+}
+
+#authModal p {
+    margin-top: 18px !important;
+}
+
+
+/* ==========================================================
+   PROFILE MODAL
+========================================================== */
+
+#profileModal .modal-content {
+    width: min(92vw, 540px) !important;
+}
+
+#profileModal .profile-avatar {
+    display: flex !important;
+    justify-content: center !important;
+
+    margin: 24px 0 !important;
+}
+
+#profileModal .profile-avatar img {
+    width: 90px !important;
+    height: 90px !important;
+
+    object-fit: cover !important;
+
+    border-radius: 50% !important;
+}
+
+#profileModal .profile-info {
+    display: grid !important;
+    gap: 8px !important;
+}
+
+#profileModal #saveProfileBtn,
+#profileModal #logoutBtn {
+    margin-top: 18px !important;
+}
+
+
+/* ==========================================================
+   DRAWER OVERLAY
+========================================================== */
+
+#drawerOverlay,
+.drawer-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+
+    background: rgba(0, 0, 0, 0.42) !important;
+
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+
+    z-index: 3900 !important;
+
+    transition:
+        opacity 0.3s ease,
+        visibility 0.3s ease !important;
+}
+
+#drawerOverlay.active,
+#drawerOverlay.open,
+.drawer-overlay.active,
+.drawer-overlay.open {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+
+/* ==========================================================
+   DRAWERS
+========================================================== */
+
+.drawer {
+    position: fixed !important;
+
+    top: 0 !important;
+    right: 0 !important;
+
+    width: min(92vw, 440px) !important;
+    height: 100dvh !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    background: #ffffff !important;
+
+    transform: translateX(105%) !important;
+
+    visibility: hidden !important;
+    pointer-events: none !important;
+
+    z-index: 4000 !important;
+
+    box-shadow:
+        -20px 0 60px rgba(0, 0, 0, 0.12) !important;
+
+    transition:
+        transform 0.35s ease,
+        visibility 0.35s ease !important;
+}
+
+.drawer.active,
+.drawer.open {
+    transform: translateX(0) !important;
+
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+
+/* ==========================================================
+   DRAWER HEADER
+========================================================== */
+
+.drawer > header {
+    flex: 0 0 auto !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+
+    padding: 24px !important;
+
+    border-bottom: 1px solid #e8e8e8 !important;
+
+    background: #fff !important;
+}
+
+.drawer > header h2 {
+    margin: 0 !important;
+
+    font-size: 2rem !important;
+}
+
+.drawer > header button {
+    width: 40px !important;
+    height: 40px !important;
+
+    display: grid !important;
+    place-items: center !important;
+
+    border-radius: 50% !important;
+
+    font-size: 28px !important;
+
+    cursor: pointer !important;
+}
+
+.drawer > header button:hover {
+    background: #f2f2f2 !important;
+}
+
+
+/* ==========================================================
+   DRAWER CONTENT
+========================================================== */
+
+#wishlist-items,
+#cart-items {
+    flex: 1 1 auto !important;
+
+    overflow-y: auto !important;
+
+    padding: 20px 24px !important;
+}
+
+.drawer-empty {
+    flex: 1 1 auto !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    gap: 18px !important;
+
+    padding: 40px 24px !important;
+
+    text-align: center !important;
+}
+
+.drawer-empty i {
+    font-size: 56px !important;
+
+    color: #d5d5d5 !important;
+}
+
+
+/* ==========================================================
+   NAVBAR CLICK LAYER
+========================================================== */
+
+.navbar {
+    z-index: 1000 !important;
+}
+
+.nav-container,
+.nav-left,
+.nav-right,
+.logo,
+.nav-icon,
+.hamburger {
+    position: relative;
+}
+
+.nav-icon,
+.hamburger,
+.logo a,
+.nav-link {
+    pointer-events: auto !important;
+}
+
+
+/* ==========================================================
+   MOBILE MENU
+========================================================== */
+
+.mobile-menu {
+    position: fixed !important;
+
+    top: 82px !important;
+    left: 0 !important;
+
+    width: 100% !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    padding: 24px !important;
+
+    background: #ffffff !important;
+
+    border-top: 1px solid #ededed !important;
+    border-bottom: 1px solid #ededed !important;
+
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+
+    transform: translateY(-12px) !important;
+
+    z-index: 950 !important;
+
+    transition:
+        opacity 0.25s ease,
+        visibility 0.25s ease,
+        transform 0.25s ease !important;
+}
+
+.mobile-menu.active,
+.mobile-menu.open {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+
+    transform: translateY(0) !important;
+}
+
+.mobile-menu a {
+    display: block !important;
+
+    padding: 16px 0 !important;
+
+    border-bottom: 1px solid #ededed !important;
+
+    font-size: 1rem !important;
+}
+
+
+/* ==========================================================
+   SPA PAGE SAFETY
+========================================================== */
+
+.view-section {
+    display: none !important;
+}
+
+.view-section.active-view,
+.view-section.active {
+    display: block !important;
+}
+
+
+/* ==========================================================
+   CONTACT PAGE FIX
+   Contact is nested in Home, so don't force-hide it separately.
+========================================================== */
+
+#contact-page {
+    display: block;
+}
+
+
+/* ==========================================================
+   HIDDEN ATTRIBUTE MUST WIN
+========================================================== */
+
+[hidden] {
+    display: none !important;
+}
+
+
+/* ==========================================================
+   MOBILE BOTTOM NAV
+========================================================== */
+
+@media (max-width: 768px) {
+
+    .modal {
+        padding: 14px !important;
+    }
+
+    .modal-content {
+        width: 100% !important;
+
+        max-height: calc(100dvh - 28px) !important;
+
+        padding:
+            36px 20px 24px !important;
+
+        border-radius: 18px !important;
+    }
+
+    .drawer {
+        width: min(94vw, 420px) !important;
+    }
+
+    #nav-links {
+        display: none !important;
+    }
+
+    .search-box {
+        display: none !important;
+    }
+
+    .hamburger {
+        display: grid !important;
+        place-items: center !important;
+
+        cursor: pointer !important;
+    }
+}
