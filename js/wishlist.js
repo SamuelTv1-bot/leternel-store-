@@ -161,6 +161,12 @@ function cacheElements() {
             getById("account-wishlist-empty") ||
             query("[data-account-wishlist-empty]"),
 
+countElements: queryAll(
+    "[data-wishlist-item-count]"
+)
+
+};
+
         /* ==================================================
            HEADER / COUNTERS
         ================================================== */
