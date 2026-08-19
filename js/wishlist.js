@@ -161,11 +161,6 @@ function cacheElements() {
             getById("account-wishlist-empty") ||
             query("[data-account-wishlist-empty]"),
 
-countElements: queryAll(
-    "[data-wishlist-item-count]"
-)
-
-};
 
         /* ==================================================
            HEADER / COUNTERS
@@ -182,8 +177,11 @@ countElements: queryAll(
             getById("wishlistCount") ||
             getById("wishlist-count") ||
             query("[data-wishlist-count]")
-    };
-}
+               
+    countElements: queryAll(
+    "[data-wishlist-item-count]"
+)
+};
 
     /* ======================================================
        ITEM NORMALIZATION
