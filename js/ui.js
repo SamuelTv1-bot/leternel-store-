@@ -2007,6 +2007,85 @@
     ====================================================== */
 
     function bindDelegatedEvents() {
+document.addEventListener(
+    "click",
+    function (event) {
+        const navButton =
+            event.target.closest(
+                ".mobile-bottom-nav button"
+            );
+
+        if (!navButton) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (
+            navButton.dataset.target ===
+            "home-page"
+        ) {
+            if (
+                window.LEternelRouter &&
+                typeof window.LEternelRouter.navigate ===
+                    "function"
+            ) {
+                window.LEternelRouter.navigate("/");
+            }
+
+            return;
+        }
+
+        if (
+            navButton.dataset.target ===
+            "shop-page"
+        ) {
+            if (
+                window.LEternelRouter &&
+                typeof window.LEternelRouter.navigate ===
+                    "function"
+            ) {
+                window.LEternelRouter.navigate("/shop");
+            }
+
+            return;
+        }
+
+        if (
+            navButton.id ===
+            "mobileWishlist"
+        ) {
+            if (
+                window.LEternelRouter &&
+                typeof window.LEternelRouter.navigate ===
+                    "function"
+            ) {
+                window.LEternelRouter.navigate(
+                    "/account/wishlist"
+                );
+            }
+
+            return;
+        }
+
+        if (
+            navButton.id ===
+            "mobileProfile"
+        ) {
+            if (
+                window.LEternelAuth &&
+                typeof window.LEternelAuth.openProfile ===
+                    "function"
+            ) {
+                window.LEternelAuth.openProfile();
+            }
+
+            return;
+        }
+    }
+);
+
         document.addEventListener(
             "click",
             function (event) {
