@@ -2007,6 +2007,51 @@
     ====================================================== */
 
     function bindDelegatedEvents() {
+        document.addEventListener(
+            "click",
+            function (event) {
+                const navButton =
+                    event.target.closest(
+                        ".mobile-bottom-nav button[data-target]"
+                    );
+
+                if (!navButton) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                const target =
+                    navButton.dataset.target;
+
+                if (
+                    target === "home-page" &&
+                    window.LEternelRouter &&
+                    typeof window.LEternelRouter.navigate ===
+                        "function"
+                ) {
+                    window.LEternelRouter.navigate(
+                        "home"
+                    );
+
+                    return;
+                }
+
+                if (
+                    target === "shop-page" &&
+                    window.LEternelRouter &&
+                    typeof window.LEternelRouter.navigate ===
+                        "function"
+                ) {
+                    window.LEternelRouter.navigate(
+                        "shop"
+                    );
+
+                    return;
+                }
+            }
+        );
+
 document.addEventListener(
     "click",
     function (event) {
