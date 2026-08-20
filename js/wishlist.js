@@ -2087,5 +2087,5 @@ Wishlist.toggleDrawer = toggleDrawer;
     } else {
         initialize();
     }
+    }
 })();
-
