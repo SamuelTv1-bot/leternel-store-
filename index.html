@@ -2475,5 +2475,219 @@ FIREBASE SDK (v8)
 <script src="public/js/admin/admin-shell.js"></script>
 </div>
 
+<!-- =====================================================
+CORE NAVIGATION FALLBACK
+====================================================== -->
+
+<script>
+(function () {
+
+    function showPage(targetId, filter) {
+
+        if (!targetId) return;
+
+        const target = document.getElementById(targetId);
+
+        if (!target) {
+            console.warn("Navigation target not found:", targetId);
+            return;
+        }
+
+        /*
+         * Hide every SPA view
+         */
+        document.querySelectorAll(".view-section").forEach(function (section) {
+            section.classList.remove("active-view");
+        });
+
+        /*
+         * Show requested page
+         */
+        target.classList.add("active-view");
+
+        /*
+         * Scroll to top
+         */
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+        /*
+         * Close mobile menu
+         */
+        const mobileMenu = document.getElementById("mobile-menu");
+
+        if (mobileMenu) {
+            mobileMenu.classList.remove("open");
+            mobileMenu.classList.remove("active");
+        }
+
+        /*
+         * Handle Shop filters
+         */
+        if (targetId === "shop-page" && filter) {
+
+            const categorySelect =
+                document.getElementById("filter-category");
+
+            if (categorySelect) {
+                categorySelect.value = filter;
+
+                categorySelect.dispatchEvent(
+                    new Event("change", {
+                        bubbles: true
+                    })
+                );
+            }
+
+            /*
+             * Give existing product module a chance
+             * to react to the filter.
+             */
+            window.dispatchEvent(
+                new CustomEvent("leternel:shop-filter", {
+                    detail: {
+                        filter: filter
+                    }
+                })
+            );
+        }
+
+        /*
+         * Update active navigation links
+         */
+        document.querySelectorAll("[data-target]").forEach(function (element) {
+
+            element.classList.remove("active");
+
+        });
+
+        document.querySelectorAll(
+            '[data-target="' + targetId + '"]'
+        ).forEach(function (element) {
+
+            element.classList.add("active");
+
+        });
+
+        /*
+         * Update URL hash without reloading
+         */
+        try {
+
+            history.replaceState(
+                null,
+                "",
+                "#" + targetId
+            );
+
+        } catch (error) {
+
+            console.warn(
+                "Could not update URL:",
+                error
+            );
+
+        }
+    }
+
+
+    /*
+     * GLOBAL CLICK HANDLER
+     *
+     * This catches:
+     * - Shop Collection
+     * - Discover Our Story
+     * - Men's Explore
+     * - Women's Explore
+     * - Accessories Explore
+     * - Navigation links
+     * - Footer shop links
+     * - Mobile Shop
+     * - Mobile Home
+     */
+    document.addEventListener("click", function (event) {
+
+        const trigger = event.target.closest("[data-target]");
+
+        if (!trigger) return;
+
+        /*
+         * Don't interfere with controls that have
+         * explicitly disabled navigation.
+         */
+        if (trigger.dataset.noNavigation === "true") {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const targetId =
+            trigger.getAttribute("data-target");
+
+        const filter =
+            trigger.getAttribute("data-filter");
+
+        showPage(
+            targetId,
+            filter
+        );
+
+    }, true);
+
+
+    /*
+     * HAMBURGER
+     */
+    const hamburger =
+        document.getElementById("hamburger");
+
+    const mobileMenu =
+        document.getElementById("mobile-menu");
+
+    if (hamburger && mobileMenu) {
+
+        hamburger.addEventListener("click", function (event) {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            mobileMenu.classList.toggle("open");
+            mobileMenu.classList.toggle("active");
+
+        });
+
+    }
+
+
+    /*
+     * INITIAL PAGE
+     */
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const hash =
+            window.location.hash.replace("#", "");
+
+        if (
+            hash &&
+            document.getElementById(hash) &&
+            document.getElementById(hash).classList.contains("view-section")
+        ) {
+
+            showPage(hash);
+
+        } else {
+
+            showPage("home-page");
+
+        }
+
+    });
+
+})();
+</script>
+
 </body>
 </html>
