@@ -808,6 +808,219 @@ function hideLoader() {
     );
 }
 
+/* ======================================================
+   SPA NAVIGATION
+====================================================== */
+
+function navigateToPage(
+    targetId,
+    filter
+) {
+    if (!targetId) {
+        return;
+    }
+
+    const targetPage =
+        document.getElementById(
+            targetId
+        );
+
+    if (!targetPage) {
+        console.warn(
+            "[Navigation] Page not found:",
+            targetId
+        );
+
+        return;
+    }
+
+    /* ----------------------------------------------
+       HIDE ALL SPA PAGES
+    ---------------------------------------------- */
+
+    const pages =
+        document.querySelectorAll(
+            ".view-section"
+        );
+
+    pages.forEach(
+        function (page) {
+            page.classList.remove(
+                "active-view"
+            );
+        }
+    );
+
+    /* ----------------------------------------------
+       SHOW TARGET PAGE
+    ---------------------------------------------- */
+
+    targetPage.classList.add(
+        "active-view"
+    );
+
+    /* ----------------------------------------------
+       UPDATE NAVIGATION ACTIVE STATE
+    ---------------------------------------------- */
+
+    const navLinks =
+        document.querySelectorAll(
+            ".nav-link"
+        );
+
+    navLinks.forEach(
+        function (link) {
+            link.classList.remove(
+                "active"
+            );
+
+            if (
+                link.dataset.target ===
+                targetId
+            ) {
+                link.classList.add(
+                    "active"
+                );
+            }
+        }
+    );
+
+    /* ----------------------------------------------
+       APPLY COLLECTION FILTER
+    ---------------------------------------------- */
+
+    if (
+        filter &&
+        targetId === "shop-page"
+    ) {
+        const categoryFilter =
+            document.getElementById(
+                "filter-category"
+            );
+
+        if (categoryFilter) {
+            categoryFilter.value =
+                filter;
+
+            categoryFilter.dispatchEvent(
+                new Event(
+                    "change",
+                    {
+                        bubbles:
+                            true
+                    }
+                )
+            );
+        }
+    }
+
+    /* ----------------------------------------------
+       CLOSE MOBILE MENU
+    ---------------------------------------------- */
+
+    const mobileMenu =
+        document.getElementById(
+            "mobile-menu"
+        );
+
+    if (mobileMenu) {
+        mobileMenu.classList.remove(
+            "active"
+        );
+
+        mobileMenu.classList.remove(
+            "open"
+        );
+    }
+
+    /* ----------------------------------------------
+       SCROLL TO TOP
+    ---------------------------------------------- */
+
+    window.scrollTo(
+        {
+            top:
+                0,
+
+            behavior:
+                "smooth"
+        }
+    );
+
+    /* ----------------------------------------------
+       UPDATE APP ROUTE
+    ---------------------------------------------- */
+
+    setState(
+        "route",
+        targetId
+    );
+
+    emit(
+        "navigation:change",
+        {
+            target:
+                targetId,
+
+            filter:
+                filter ||
+                null
+        }
+    );
+}
+
+
+/* ======================================================
+   NAVIGATION CLICK HANDLER
+====================================================== */
+
+function initializeNavigation() {
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            const trigger =
+                event.target.closest(
+                    "[data-target]"
+                );
+
+            if (!trigger) {
+                return;
+            }
+
+            const targetId =
+                trigger.getAttribute(
+                    "data-target"
+                );
+
+            if (!targetId) {
+                return;
+            }
+
+            /*
+             * Prevent links such as href="#"
+             * from changing the browser location.
+             */
+            event.preventDefault();
+
+            const filter =
+                trigger.getAttribute(
+                    "data-filter"
+                );
+
+            navigateToPage(
+                targetId,
+                filter
+            );
+        }
+    );
+
+    console.info(
+        "[Navigation] SPA navigation initialized."
+    );
+}
+
     /* ======================================================
        PUBLIC API
     ====================================================== */
