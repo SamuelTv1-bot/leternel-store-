@@ -1,2544 +1,1733 @@
 ```javascript
 "use strict";
 
-/*
-============================================================
-L'ÉTERNEL STORE
-CORE APPLICATION — COMPLETE FRONTEND FOUNDATION
-Firebase v8 compatible
-============================================================
+/* ==========================================================
+   L'ÉTERNEL STORE
+   APPLICATION BOOTSTRAP
+========================================================== */
 
-IMPORTANT:
-- This file does NOT initialize Firebase.
-- Firebase v8 remains handled by your existing Firebase setup.
-- This file creates window.LEternelApp.
-- Existing modules can continue using:
-    window.LEternelApp
-    window.LEternelRouter
-    window.LEternelProducts
-    window.LEternelCart
-    window.LEternelWishlist
-    window.LEternelAuth
-    window.LEternelUI
-    window.FirebaseServices
-
-This file also provides a safe fallback SPA navigation layer
-for existing data-target navigation in the HTML.
-============================================================
-*/
-
-(function (global) {
-
-    /* ========================================================
-       PREVENT DUPLICATE INITIALIZATION
-    ======================================================== */
-
-    if (global.LEternelApp) {
-        console.warn(
-            "[L'ÉTERNEL] App already initialized."
-        );
-        return;
-    }
-
-
-    /* ========================================================
-       APPLICATION STATE
-    ======================================================== */
-
+(function initializeApplication() {
     const App = {
-
-        name: "L'ÉTERNEL Store",
-
-        version: "2.0.0",
-
-        initialized: false,
-
-        ready: false,
-
         state: {
-
-            route: "home",
-
-            currentPage: "home-page",
-
-            user: null,
-
-            products: [],
-
-            cart: [],
-
-            wishlist: [],
-
+            initialized: false,
+            currentUser: null,
+            currentRoute: "home",
             cartCount: 0,
-
             wishlistCount: 0,
-
-            search: {
-                query: "",
-                results: []
-            },
-
-            shop: {
-                category: "all",
-                price: "all",
-                sort: "latest",
-                page: 1
-            },
-
-            product: {
-                current: null
-            }
-
+            isOnline: window.navigator.onLine,
+            activeOverlay: null
         },
 
-        modules: {},
+        elements: {},
 
-        services: {},
-
-        utils: {},
-
-        config: {}
-
+        config: {
+            mobileBreakpoint: 768,
+            scrollThreshold: 80,
+            toastDuration: 4200
+        }
     };
 
-
-    /* ========================================================
+    /* ======================================================
        DOM HELPERS
-    ======================================================== */
+    ====================================================== */
 
-    function $(selector, parent) {
-
-        return (parent || document)
-            .querySelector(selector);
-
+    function query(selector, parent) {
+        return (parent || document).querySelector(selector);
     }
 
-
-    function $all(selector, parent) {
-
+    function queryAll(selector, parent) {
         return Array.prototype.slice.call(
-            (parent || document)
-                .querySelectorAll(selector)
+            (parent || document).querySelectorAll(selector)
         );
-
     }
 
-
-    function byId(id) {
-
+    function getById(id) {
         return document.getElementById(id);
-
     }
 
+    function createElement(tagName, className, attributes) {
+        const element = document.createElement(tagName);
 
-    /* ========================================================
-       HTML ESCAPING
-    ======================================================== */
+        if (className) {
+            element.className = className;
+        }
+
+        Object.keys(attributes || {}).forEach(function (key) {
+            const value = attributes[key];
+
+            if (key === "text") {
+                element.textContent = value;
+                return;
+            }
+
+            if (key === "html") {
+                element.innerHTML = value;
+                return;
+            }
+
+            element.setAttribute(key, value);
+        });
+
+        return element;
+    }
 
     function escapeHTML(value) {
-
-        if (
-            value === null ||
-            value === undefined
-        ) {
-            return "";
-        }
-
-        const element =
-            document.createElement("div");
-
-        element.textContent =
-            String(value);
-
-        return element.innerHTML;
-
+        const temporaryElement = document.createElement("div");
+        temporaryElement.textContent = String(value || "");
+        return temporaryElement.innerHTML;
     }
 
+    /* ======================================================
+       ELEMENT CACHE
+    ====================================================== */
 
-    /* ========================================================
-       NUMBER HELPERS
-    ======================================================== */
+    function cacheElements() {
+        App.elements = {
+            body: document.body,
 
-    function toNumber(value, fallback) {
+            navbar:
+                query(".navbar") ||
+                query(".site-header") ||
+                query("header"),
 
-        const number =
-            Number(value);
+            mobileMenuToggle:
+                getById("mobile-menu-toggle") ||
+                query(".mobile-menu-toggle") ||
+                query("[data-mobile-menu-toggle]"),
 
-        if (
-            Number.isFinite(number)
-        ) {
-            return number;
-        }
+            mobileMenu:
+                getById("mobile-menu") ||
+                query(".mobile-menu-drawer") ||
+                query("[data-mobile-menu]"),
 
-        return Number(fallback) || 0;
+            mobileMenuOverlay:
+                getById("mobile-menu-overlay") ||
+                query(".mobile-menu-overlay"),
 
+            mobileMenuClose:
+                getById("mobile-menu-close") ||
+                query(".mobile-menu-close"),
+
+            searchTriggers: queryAll(
+                "[data-search-open], .search-trigger, .nav-search-button"
+            ),
+
+            searchOverlay:
+                getById("global-search-overlay") ||
+                query(".global-search-overlay"),
+
+            searchClose:
+                getById("global-search-close") ||
+                query(".global-search-close"),
+
+            searchInput:
+                getById("global-search-input") ||
+                query(".global-search-input"),
+
+            cartTriggers: queryAll(
+                "[data-cart-open], .cart-trigger, .nav-cart"
+            ),
+
+            cartDrawer:
+                getById("cart-drawer") ||
+                query(".cart-drawer"),
+
+            cartOverlay:
+                getById("cart-overlay") ||
+                query(".cart-overlay") ||
+                query(".drawer-overlay"),
+
+            cartClose:
+                getById("cart-close") ||
+                query(".cart-close"),
+
+            wishlistTriggers: queryAll(
+                "[data-wishlist-open], .wishlist-trigger, .nav-wishlist"
+            ),
+
+            wishlistDrawer:
+                getById("wishlist-drawer") ||
+                query(".wishlist-drawer"),
+
+            wishlistClose:
+                getById("wishlist-close") ||
+                query(".wishlist-close"),
+
+            profileTriggers: queryAll(
+                "[data-profile-open], .profile-trigger, .nav-profile"
+            ),
+
+            profileModal:
+                getById("profile-modal") ||
+                query(".profile-modal") ||
+                query("[data-profile-modal]"),
+
+            authModal:
+                getById("auth-modal") ||
+                query(".auth-modal"),
+
+            authTriggers: queryAll(
+                "[data-auth-open], .auth-trigger"
+            ),
+
+            modalCloseButtons: queryAll(
+                "[data-modal-close], .modal-close, .account-overlay-close"
+            ),
+
+            pageSections: queryAll(
+                "[data-page], .page-section"
+            ),
+
+            navigationLinks: queryAll(
+                "[data-route], .nav-link, .mobile-bottom-nav-item"
+            ),
+
+            toastContainer:
+                getById("toast-container") ||
+                query(".toast-container"),
+
+            globalLoader:
+                getById("global-loader") ||
+                query(".global-loading-overlay"),
+
+            offlineBanner:
+                getById("offline-banner") ||
+                query(".offline-banner"),
+
+            scrollToTop:
+                getById("scroll-to-top") ||
+                query(".scroll-to-top"),
+
+            supportButton:
+                getById("support-fab") ||
+                query(".support-fab"),
+
+            supportPanel:
+                getById("support-panel") ||
+                query(".support-panel"),
+
+            supportClose:
+                getById("support-panel-close") ||
+                query(".support-panel-close"),
+
+            cartBadges: queryAll(
+                "[data-cart-count], .cart-count, .mobile-cart-count"
+            ),
+
+            wishlistBadges: queryAll(
+                "[data-wishlist-count], .wishlist-count, .mobile-wishlist-count"
+            ),
+
+            newsletterForms: queryAll(
+                ".newsletter-form, .footer-newsletter"
+            ),
+
+            contactForm:
+                getById("contact-form") ||
+                query(".contact-form")
+        };
     }
 
+    /* ======================================================
+       GLOBAL LOADER
+    ====================================================== */
 
-    function clamp(value, minimum, maximum) {
+    function showLoader(message) {
+        const loader = App.elements.globalLoader;
 
-        return Math.min(
-            maximum,
-            Math.max(
-                minimum,
-                value
-            )
-        );
-
-    }
-
-
-    /* ========================================================
-       PRICE FORMATTER
-    ======================================================== */
-
-    function formatPrice(
-        value,
-        currency
-    ) {
-
-        const amount =
-            toNumber(value, 0);
-
-        const currencyCode =
-            currency || "NGN";
-
-        try {
-
-            return new Intl.NumberFormat(
-                "en-NG",
-                {
-                    style: "currency",
-                    currency: currencyCode,
-                    maximumFractionDigits: 0
-                }
-            ).format(amount);
-
-        } catch (error) {
-
-            return (
-                currencyCode +
-                " " +
-                amount.toLocaleString()
-            );
-
-        }
-
-    }
-
-
-    /* ========================================================
-       DATE FORMATTER
-    ======================================================== */
-
-    function formatDate(value) {
-
-        if (!value) {
-            return "";
-        }
-
-        try {
-
-            let date;
-
-            if (
-                value &&
-                typeof value.toDate === "function"
-            ) {
-
-                date =
-                    value.toDate();
-
-            } else {
-
-                date =
-                    new Date(value);
-
-            }
-
-            if (
-                Number.isNaN(
-                    date.getTime()
-                )
-            ) {
-                return "";
-            }
-
-            return new Intl.DateTimeFormat(
-                "en-NG",
-                {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric"
-                }
-            ).format(date);
-
-        } catch (error) {
-
-            return "";
-
-        }
-
-    }
-
-
-    /* ========================================================
-       DEEP CLONE
-    ======================================================== */
-
-    function clone(value) {
-
-        if (
-            value === undefined ||
-            value === null
-        ) {
-            return value;
-        }
-
-        try {
-
-            return JSON.parse(
-                JSON.stringify(value)
-            );
-
-        } catch (error) {
-
-            return value;
-
-        }
-
-    }
-
-
-    /* ========================================================
-       MODULE REGISTRATION
-    ======================================================== */
-
-    function registerModule(
-        name,
-        module
-    ) {
-
-        const moduleName =
-            String(name || "")
-                .trim()
-                .toLowerCase();
-
-        if (!moduleName) {
-
-            throw new Error(
-                "A module name is required."
-            );
-
-        }
-
-        App.modules[moduleName] =
-            module;
-
-        return module;
-
-    }
-
-
-    function getModule(name) {
-
-        const moduleName =
-            String(name || "")
-                .trim()
-                .toLowerCase();
-
-        return (
-            App.modules[moduleName] ||
-            null
-        );
-
-    }
-
-
-    function hasModule(name) {
-
-        return Boolean(
-            getModule(name)
-        );
-
-    }
-
-
-    /* ========================================================
-       SERVICE REGISTRATION
-    ======================================================== */
-
-    function registerService(
-        name,
-        service
-    ) {
-
-        const serviceName =
-            String(name || "")
-                .trim()
-                .toLowerCase();
-
-        if (!serviceName) {
-
-            throw new Error(
-                "A service name is required."
-            );
-
-        }
-
-        App.services[serviceName] =
-            service;
-
-        return service;
-
-    }
-
-
-    function getService(name) {
-
-        const serviceName =
-            String(name || "")
-                .trim()
-                .toLowerCase();
-
-        return (
-            App.services[serviceName] ||
-            null
-        );
-
-    }
-
-
-    /* ========================================================
-       STATE
-    ======================================================== */
-
-    function setState(
-        key,
-        value
-    ) {
-
-        if (!key) {
+        if (!loader) {
             return;
         }
 
-        App.state[key] =
-            value;
+        const label =
+            query("[data-loading-text]", loader) ||
+            query("p", loader);
 
-        emit(
-            "app:statechange",
+        if (label && message) {
+            label.textContent = message;
+        }
+
+        loader.classList.add("active");
+        loader.setAttribute("aria-hidden", "false");
+        document.body.classList.add("no-scroll");
+    }
+
+    function hideLoader() {
+        const loader = App.elements.globalLoader;
+
+        if (!loader) {
+            return;
+        }
+
+        loader.classList.remove("active");
+        loader.setAttribute("aria-hidden", "true");
+
+        if (!App.state.activeOverlay) {
+            document.body.classList.remove("no-scroll");
+        }
+    }
+
+    /* ======================================================
+       TOAST NOTIFICATIONS
+    ====================================================== */
+
+    function ensureToastContainer() {
+        if (App.elements.toastContainer) {
+            return App.elements.toastContainer;
+        }
+
+        const container = createElement(
+            "div",
+            "toast-container",
             {
-                key: key,
-                value: value,
-                state: App.state
+                id: "toast-container",
+                "aria-live": "polite",
+                "aria-atomic": "true"
             }
         );
 
+        document.body.appendChild(container);
+        App.elements.toastContainer = container;
+
+        return container;
     }
 
-
-    function getState(key) {
-
-        if (!key) {
-            return App.state;
-        }
-
-        return App.state[key];
-
-    }
-
-
-    /* ========================================================
-       EVENTS
-    ======================================================== */
-
-    function emit(
-        name,
-        detail
-    ) {
-
-        if (!name) {
-            return;
-        }
-
-        document.dispatchEvent(
-            new CustomEvent(
-                name,
-                {
-                    detail:
-                        detail || {}
-                }
-            )
-        );
-
-    }
-
-
-    function on(
-        name,
-        handler,
-        options
-    ) {
-
-        if (
-            !name ||
-            typeof handler !==
-                "function"
-        ) {
-
-            return function () {};
-
-        }
-
-        document.addEventListener(
-            name,
-            handler,
-            options
-        );
-
-        return function () {
-
-            document.removeEventListener(
-                name,
-                handler,
-                options
-            );
-
+    function getToastIcon(type) {
+        const icons = {
+            success: "fa-solid fa-check",
+            error: "fa-solid fa-xmark",
+            warning: "fa-solid fa-triangle-exclamation",
+            info: "fa-solid fa-circle-info"
         };
 
+        return icons[type] || icons.info;
     }
-
-
-    function once(
-        name,
-        handler
-    ) {
-
-        return on(
-            name,
-            handler,
-            {
-                once: true
-            }
-        );
-
-    }
-
-
-    /* ========================================================
-       CART COUNTER
-    ======================================================== */
-
-    function setCartCount(count) {
-
-        const normalizedCount =
-            Math.max(
-                0,
-                Number(count) || 0
-            );
-
-        App.state.cartCount =
-            normalizedCount;
-
-        const counters =
-            $all(
-                [
-                    "[data-cart-count]",
-                    "#cartCount",
-                    ".cart-count"
-                ].join(",")
-            );
-
-        counters.forEach(
-            function (element) {
-
-                element.textContent =
-                    String(
-                        normalizedCount
-                    );
-
-                element.hidden =
-                    normalizedCount <= 0;
-
-                element.setAttribute(
-                    "aria-label",
-                    normalizedCount +
-                    (
-                        normalizedCount === 1
-                            ? " item in bag"
-                            : " items in bag"
-                    )
-                );
-
-            }
-        );
-
-        emit(
-            "cart:count",
-            {
-                count:
-                    normalizedCount
-            }
-        );
-
-        return normalizedCount;
-
-    }
-
-
-    /* ========================================================
-       WISHLIST COUNTER
-    ======================================================== */
-
-    function setWishlistCount(count) {
-
-        const normalizedCount =
-            Math.max(
-                0,
-                Number(count) || 0
-            );
-
-        App.state.wishlistCount =
-            normalizedCount;
-
-        const counters =
-            $all(
-                [
-                    "[data-wishlist-count]",
-                    "#wishlistCount",
-                    ".wishlist-count"
-                ].join(",")
-            );
-
-        counters.forEach(
-            function (element) {
-
-                element.textContent =
-                    String(
-                        normalizedCount
-                    );
-
-                element.hidden =
-                    normalizedCount <= 0;
-
-                element.setAttribute(
-                    "aria-label",
-                    normalizedCount +
-                    (
-                        normalizedCount === 1
-                            ? " item in wishlist"
-                            : " items in wishlist"
-                    )
-                );
-
-            }
-        );
-
-        emit(
-            "wishlist:count",
-            {
-                count:
-                    normalizedCount
-            }
-        );
-
-        return normalizedCount;
-
-    }
-
-
-    /* ========================================================
-       TOAST
-    ======================================================== */
 
     function showToast(options) {
-
         const settings =
             typeof options === "string"
                 ? {
                     message: options
                 }
-                : (
-                    options || {}
-                );
+                : options || {};
 
-        const type =
-            settings.type ||
-            "info";
-
+        const type = settings.type || "info";
         const title =
             settings.title ||
-            "";
+            {
+                success: "Success",
+                error: "Something went wrong",
+                warning: "Please note",
+                info: "Information"
+            }[type];
 
         const message =
-            settings.message ||
-            "";
-
-        emit(
-            "toast:show",
-            {
-                type: type,
-                title: title,
-                message: message
-            }
-        );
-
-        let container =
-            $(
-                "[data-app-toast-container]"
-            );
-
-        if (!container) {
-
-            container =
-                document.createElement(
-                    "div"
-                );
-
-            container.setAttribute(
-                "data-app-toast-container",
-                ""
-            );
-
-            container.style.position =
-                "fixed";
-
-            container.style.right =
-                "24px";
-
-            container.style.bottom =
-                "24px";
-
-            container.style.zIndex =
-                "99999";
-
-            container.style.display =
-                "flex";
-
-            container.style.flexDirection =
-                "column";
-
-            container.style.gap =
-                "10px";
-
-            container.style.width =
-                "min(380px, calc(100vw - 40px))";
-
-            container.style.pointerEvents =
-                "none";
-
-            document.body.appendChild(
-                container
-            );
-
-        }
-
-        const toast =
-            document.createElement(
-                "div"
-            );
-
-        toast.style.pointerEvents =
-            "auto";
-
-        toast.style.background =
-            "#111";
-
-        toast.style.color =
-            "#fff";
-
-        toast.style.padding =
-            "15px 17px";
-
-        toast.style.border =
-            "1px solid rgba(255,255,255,.14)";
-
-        toast.style.borderRadius =
-            "4px";
-
-        toast.style.fontSize =
-            "13px";
-
-        toast.style.lineHeight =
-            "1.5";
-
-        toast.style.boxShadow =
-            "0 16px 45px rgba(0,0,0,.18)";
-
-        toast.style.opacity =
-            "0";
-
-        toast.style.transform =
-            "translateY(10px)";
-
-        toast.style.transition =
-            "opacity .25s ease, transform .25s ease";
-
-        if (title) {
-
-            const heading =
-                document.createElement(
-                    "strong"
-                );
-
-            heading.textContent =
-                title;
-
-            heading.style.display =
-                "block";
-
-            heading.style.marginBottom =
-                "4px";
-
-            toast.appendChild(
-                heading
-            );
-
-        }
-
-        if (message) {
-
-            const text =
-                document.createElement(
-                    "span"
-                );
-
-            text.textContent =
-                message;
-
-            toast.appendChild(
-                text
-            );
-
-        }
-
-        container.appendChild(
-            toast
-        );
-
-        requestAnimationFrame(
-            function () {
-
-                toast.style.opacity =
-                    "1";
-
-                toast.style.transform =
-                    "translateY(0)";
-
-            }
-        );
+            settings.message || "Your request has been processed.";
 
         const duration =
-            Number(
-                settings.duration
-            ) || 3500;
+            Number(settings.duration) > 0
+                ? Number(settings.duration)
+                : App.config.toastDuration;
 
-        window.setTimeout(
-            function () {
+        const container = ensureToastContainer();
 
-                toast.style.opacity =
-                    "0";
-
-                toast.style.transform =
-                    "translateY(10px)";
-
-                window.setTimeout(
-                    function () {
-
-                        if (
-                            toast.parentNode
-                        ) {
-
-                            toast.parentNode
-                                .removeChild(
-                                    toast
-                                );
-
-                        }
-
-                        if (
-                            container &&
-                            !container.children.length &&
-                            container.parentNode
-                        ) {
-
-                            container.parentNode
-                                .removeChild(
-                                    container
-                                );
-
-                        }
-
-                    },
-                    300
-                );
-
-            },
-            duration
+        const toast = createElement(
+            "div",
+            "toast " + type,
+            {
+                role: type === "error" ? "alert" : "status"
+            }
         );
+
+        toast.style.setProperty(
+            "--toast-duration",
+            duration + "ms"
+        );
+
+        toast.innerHTML = [
+            '<div class="toast-icon">',
+            '<i class="' + getToastIcon(type) + '"></i>',
+            "</div>",
+            '<div class="toast-content">',
+            "<h4>" + escapeHTML(title) + "</h4>",
+            "<p>" + escapeHTML(message) + "</p>",
+            settings.actionLabel
+                ? '<button class="toast-action" type="button">' +
+                  escapeHTML(settings.actionLabel) +
+                  "</button>"
+                : "",
+            "</div>",
+            '<button class="toast-close" type="button" aria-label="Close notification">',
+            '<i class="fa-solid fa-xmark"></i>',
+            "</button>",
+            '<div class="toast-progress">',
+            '<div class="toast-progress-bar"></div>',
+            "</div>"
+        ].join("");
+
+        container.appendChild(toast);
+
+        window.requestAnimationFrame(function () {
+            toast.classList.add("show");
+        });
+
+        let timeoutId = window.setTimeout(function () {
+            removeToast(toast);
+        }, duration);
+
+        const closeButton = query(".toast-close", toast);
+        const actionButton = query(".toast-action", toast);
+
+        if (closeButton) {
+            closeButton.addEventListener("click", function () {
+                window.clearTimeout(timeoutId);
+                removeToast(toast);
+            });
+        }
+
+        if (
+            actionButton &&
+            typeof settings.onAction === "function"
+        ) {
+            actionButton.addEventListener("click", function () {
+                window.clearTimeout(timeoutId);
+                settings.onAction();
+                removeToast(toast);
+            });
+        }
+
+        toast.addEventListener("mouseenter", function () {
+            window.clearTimeout(timeoutId);
+        });
+
+        toast.addEventListener("mouseleave", function () {
+            timeoutId = window.setTimeout(function () {
+                removeToast(toast);
+            }, Math.min(duration, 2500));
+        });
 
         return toast;
-
     }
 
-
-    /* ========================================================
-       LOADER
-    ======================================================== */
-
-    function showLoader(message) {
-
-        let loader =
-            $(
-                "[data-app-loader]"
-            );
-
-        if (!loader) {
-
-            loader =
-                document.createElement(
-                    "div"
-                );
-
-            loader.setAttribute(
-                "data-app-loader",
-                ""
-            );
-
-            loader.style.position =
-                "fixed";
-
-            loader.style.inset =
-                "0";
-
-            loader.style.zIndex =
-                "99998";
-
-            loader.style.display =
-                "flex";
-
-            loader.style.alignItems =
-                "center";
-
-            loader.style.justifyContent =
-                "center";
-
-            loader.style.background =
-                "rgba(255,255,255,.82)";
-
-            loader.style.backdropFilter =
-                "blur(5px)";
-
-            const content =
-                document.createElement(
-                    "div"
-                );
-
-            content.setAttribute(
-                "data-app-loader-content",
-                ""
-            );
-
-            content.style.padding =
-                "18px 24px";
-
-            content.style.background =
-                "#111";
-
-            content.style.color =
-                "#fff";
-
-            content.style.fontSize =
-                "11px";
-
-            content.style.letterSpacing =
-                ".16em";
-
-            content.style.textTransform =
-                "uppercase";
-
-            loader.appendChild(
-                content
-            );
-
-            document.body.appendChild(
-                loader
-            );
-
-        }
-
-        const content =
-            $(
-                "[data-app-loader-content]",
-                loader
-            );
-
-        if (content) {
-
-            content.textContent =
-                message ||
-                "Loading…";
-
-        }
-
-        loader.hidden =
-            false;
-
-        emit(
-            "loader:show",
-            {
-                message:
-                    message ||
-                    "Loading…"
-            }
-        );
-
-        return loader;
-
-    }
-
-
-    function hideLoader() {
-
-        const loader =
-            $(
-                "[data-app-loader]"
-            );
-
-        if (loader) {
-
-            loader.hidden =
-                true;
-
-        }
-
-        emit(
-            "loader:hide",
-            {}
-        );
-
-    }
-
-
-    /* ========================================================
-       MODAL HELPERS
-    ======================================================== */
-
-    function openModal(element) {
-
-        if (!element) {
-            return false;
-        }
-
-        element.classList.add(
-            "active",
-            "open"
-        );
-
-        element.setAttribute(
-            "aria-hidden",
-            "false"
-        );
-
-        document.body.classList.add(
-            "no-scroll"
-        );
-
-        return true;
-
-    }
-
-
-    function closeModal(element) {
-
-        if (!element) {
-            return false;
-        }
-
-        element.classList.remove(
-            "active",
-            "open"
-        );
-
-        element.setAttribute(
-            "aria-hidden",
-            "true"
-        );
-
-        if (
-            !document.querySelector(
-                ".modal.active, .modal.open, .drawer.active, .drawer.open, [aria-modal='true'].active"
-            )
-        ) {
-
-            document.body.classList.remove(
-                "no-scroll"
-            );
-
-        }
-
-        return true;
-
-    }
-
-
-    function closeAllOverlays() {
-
-        $all(
-            [
-                ".modal.active",
-                ".modal.open",
-                ".drawer.active",
-                ".drawer.open",
-                "[aria-modal='true'].active"
-            ].join(",")
-        ).forEach(
-            function (element) {
-
-                element.classList.remove(
-                    "active",
-                    "open"
-                );
-
-                element.setAttribute(
-                    "aria-hidden",
-                    "true"
-                );
-
-            }
-        );
-
-        document.body.classList.remove(
-            "no-scroll"
-        );
-
-    }
-
-
-    /* ========================================================
-       SPA PAGE HELPERS
-    ======================================================== */
-
-    function getViewSections() {
-
-        return $all(
-            ".view-section"
-        );
-
-    }
-
-
-    function normalizePageTarget(target) {
-
-        if (!target) {
-            return "home-page";
-        }
-
-        let value =
-            String(target)
-                .trim();
-
-        const aliases = {
-
-            "home":
-                "home-page",
-
-            "/":
-                "home-page",
-
-            "shop":
-                "shop-page",
-
-            "/shop":
-                "shop-page",
-
-            "collection":
-                "shop-page",
-
-            "product":
-                "product-page",
-
-            "heritage":
-                "heritage-page",
-
-            "/heritage":
-                "heritage-page",
-
-            "contact":
-                "contact-page",
-
-            "/contact":
-                "contact-page",
-
-            "checkout":
-                "checkout-page",
-
-            "/checkout":
-                "checkout-page",
-
-            "account":
-                "account-page",
-
-            "/account":
-                "account-page"
-
-        };
-
-        if (
-            aliases[value]
-        ) {
-
-            return aliases[value];
-
-        }
-
-        if (
-            value.charAt(0) === "#"
-        ) {
-
-            value =
-                value.substring(1);
-
-        }
-
-        if (
-            document.getElementById(value)
-        ) {
-
-            return value;
-
-        }
-
-        if (
-            document.getElementById(
-                value + "-page"
-            )
-        ) {
-
-            return value + "-page";
-
-        }
-
-        return value;
-
-    }
-
-
-    function findPage(target) {
-
-        const normalized =
-            normalizePageTarget(
-                target
-            );
-
-        return (
-            document.getElementById(
-                normalized
-            ) ||
-            null
-        );
-
-    }
-
-
-    function updateBodyPageClasses(page) {
-
-        if (!page) {
+    function removeToast(toast) {
+        if (!toast || !toast.parentNode) {
             return;
         }
 
-        const classes =
-            Array.prototype.slice.call(
-                document.body.classList
-            );
+        toast.classList.add("hiding");
+        toast.classList.remove("show");
 
-        classes.forEach(
-            function (className) {
-
-                if (
-                    className.indexOf(
-                        "page-"
-                    ) === 0
-                ) {
-
-                    document.body.classList.remove(
-                        className
-                    );
-
-                }
-
+        window.setTimeout(function () {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
             }
-        );
-
-        const pageName =
-            page.id
-                .replace(
-                    /-page$/,
-                    ""
-                )
-                .replace(
-                    /[^a-z0-9-]/gi,
-                    "-"
-                );
-
-        document.body.classList.add(
-            "page-" +
-            pageName
-        );
-
+        }, 350);
     }
 
+    /* ======================================================
+       OVERLAY MANAGEMENT
+    ====================================================== */
 
-    /* ========================================================
-       SHOP FILTER
-    ======================================================== */
-
-    function applyShopFilter(filter) {
-
-        const categorySelect =
-            byId(
-                "filter-category"
-            );
-
-        const normalized =
-            String(
-                filter || "all"
-            )
-                .toLowerCase()
-                .trim();
-
-        if (categorySelect) {
-
-            const validValues = [
-                "all",
-                "menswear",
-                "womenswear",
-                "accessories"
-            ];
-
-            categorySelect.value =
-                validValues.indexOf(
-                    normalized
-                ) !== -1
-                    ? normalized
-                    : "all";
-
-            categorySelect.dispatchEvent(
-                new Event(
-                    "change",
-                    {
-                        bubbles: true
-                    }
-                )
-            );
-
+    function setOverlayState(name, isOpen) {
+        if (isOpen) {
+            App.state.activeOverlay = name;
+            document.body.classList.add("no-scroll");
+        } else if (App.state.activeOverlay === name) {
+            App.state.activeOverlay = null;
+            document.body.classList.remove("no-scroll");
         }
-
-        App.state.shop.category =
-            normalized;
-
-        emit(
-            "leternel:shop-filter",
-            {
-                filter:
-                    normalized
-            }
-        );
-
-        window.dispatchEvent(
-            new CustomEvent(
-                "leternel:shop-filter",
-                {
-                    detail: {
-                        filter:
-                            normalized
-                    }
-                }
-            )
-        );
-
     }
 
-
-    /* ========================================================
-       SHOW PAGE
-    ======================================================== */
-
-    function showPage(
-        target,
-        filter,
-        options
-    ) {
-
-        const settings =
-            options || {};
-
-        const page =
-            findPage(target);
-
-        if (!page) {
-
-            console.warn(
-                "[L'ÉTERNEL] Page not found:",
-                target
-            );
-
+    function openElement(element, name) {
+        if (!element) {
             return false;
-
         }
 
-        const sections =
-            getViewSections();
+        element.classList.add("active", "open");
+        element.setAttribute("aria-hidden", "false");
+        setOverlayState(name, true);
 
-        /*
-         * Only hide view sections.
-         * Do NOT hide arbitrary sections such as
-         * contact, newsletter, footer, etc.
-         */
-        sections.forEach(
-            function (section) {
+        return true;
+    }
 
-                section.classList.remove(
+    function closeElement(element, name) {
+        if (!element) {
+            return false;
+        }
+
+        element.classList.remove("active", "open");
+        element.setAttribute("aria-hidden", "true");
+        setOverlayState(name, false);
+
+        return true;
+    }
+
+    function closeAllOverlays() {
+        closeSearch();
+        closeCart();
+        closeWishlist();
+        closeProfileModal();
+        closeAuthModal();
+        closeMobileMenu();
+        closeSupportPanel();
+
+        queryAll(
+            ".account-overlay.active, .modal.active, .utility-confirm-overlay.active"
+        ).forEach(function (element) {
+            element.classList.remove("active", "open");
+            element.setAttribute("aria-hidden", "true");
+        });
+
+        App.state.activeOverlay = null;
+        document.body.classList.remove("no-scroll");
+    }
+
+    /* ======================================================
+       GLOBAL SEARCH
+    ====================================================== */
+
+    function openSearch() {
+        const opened = openElement(
+            App.elements.searchOverlay,
+            "search"
+        );
+
+        if (!opened) {
+            return;
+        }
+
+        document.body.classList.add("search-open");
+
+        window.setTimeout(function () {
+            if (App.elements.searchInput) {
+                App.elements.searchInput.focus();
+            }
+        }, 180);
+    }
+
+    function closeSearch() {
+        closeElement(
+            App.elements.searchOverlay,
+            "search"
+        );
+
+        document.body.classList.remove("search-open");
+    }
+
+    /* ======================================================
+       CART DRAWER
+    ====================================================== */
+
+    function openCart() {
+        if (!App.elements.cartDrawer) {
+            showToast({
+                type: "info",
+                title: "Shopping bag",
+                message: "Your shopping bag is not available yet."
+            });
+
+            return;
+        }
+
+        openElement(
+            App.elements.cartDrawer,
+            "cart"
+        );
+
+        if (App.elements.cartOverlay) {
+            App.elements.cartOverlay.classList.add("active");
+        }
+    }
+
+    function closeCart() {
+        closeElement(
+            App.elements.cartDrawer,
+            "cart"
+        );
+
+        if (App.elements.cartOverlay) {
+            App.elements.cartOverlay.classList.remove("active");
+        }
+    }
+
+    /* ======================================================
+       WISHLIST DRAWER
+    ====================================================== */
+
+    function openWishlist() {
+        if (!App.elements.wishlistDrawer) {
+            showToast({
+                type: "info",
+                title: "Wishlist",
+                message: "Your wishlist is not available yet."
+            });
+
+            return;
+        }
+
+        openElement(
+            App.elements.wishlistDrawer,
+            "wishlist"
+        );
+
+        if (App.elements.cartOverlay) {
+            App.elements.cartOverlay.classList.add("active");
+        }
+    }
+
+    function closeWishlist() {
+        closeElement(
+            App.elements.wishlistDrawer,
+            "wishlist"
+        );
+
+        if (App.elements.cartOverlay) {
+            App.elements.cartOverlay.classList.remove("active");
+        }
+    }
+
+    /* ======================================================
+       PROFILE & AUTH MODALS
+    ====================================================== */
+
+    function openProfileModal() {
+        if (!App.state.currentUser) {
+            openAuthModal();
+            return;
+        }
+
+        openElement(
+            App.elements.profileModal,
+            "profile"
+        );
+    }
+
+    function closeProfileModal() {
+        closeElement(
+            App.elements.profileModal,
+            "profile"
+        );
+    }
+
+    function openAuthModal(panelName) {
+        if (!App.elements.authModal) {
+            showToast({
+                type: "error",
+                message: "The authentication interface could not be found."
+            });
+
+            return;
+        }
+
+        openElement(
+            App.elements.authModal,
+            "auth"
+        );
+
+        if (panelName) {
+            activateAuthPanel(panelName);
+        }
+    }
+
+    function closeAuthModal() {
+        closeElement(
+            App.elements.authModal,
+            "auth"
+        );
+    }
+
+    function activateAuthPanel(panelName) {
+        const authModal = App.elements.authModal;
+
+        if (!authModal) {
+            return;
+        }
+
+        queryAll("[data-auth-panel]", authModal).forEach(
+            function (panel) {
+                panel.classList.toggle(
                     "active",
-                    "active-view"
+                    panel.dataset.authPanel === panelName
                 );
-
-                section.setAttribute(
-                    "aria-hidden",
-                    "true"
-                );
-
-                /*
-                 * Use inline display only when necessary.
-                 * This prevents old CSS from trapping the page.
-                 */
-                section.style.display =
-                    "none";
-
             }
         );
 
-        page.classList.add(
-            "active",
-            "active-view"
+        queryAll("[data-auth-tab]", authModal).forEach(
+            function (tab) {
+                tab.classList.toggle(
+                    "active",
+                    tab.dataset.authTab === panelName
+                );
+            }
         );
+    }
 
-        page.setAttribute(
+    /* ======================================================
+       MOBILE MENU
+    ====================================================== */
+
+    function openMobileMenu() {
+        if (!App.elements.mobileMenu) {
+            return;
+        }
+
+        App.elements.mobileMenu.classList.add("active");
+        App.elements.mobileMenu.setAttribute(
             "aria-hidden",
             "false"
         );
 
-        /*
-         * Do not impose a fixed width here.
-         * The existing CSS remains responsible for layout.
-         */
-        page.style.display =
-            "";
-
-        updateBodyPageClasses(
-            page
-        );
-
-        App.state.currentPage =
-            page.id;
-
-        if (
-            page.id ===
-            "home-page"
-        ) {
-
-            App.state.route =
-                "home";
-
-        } else if (
-            page.id ===
-            "shop-page"
-        ) {
-
-            App.state.route =
-                "shop";
-
-            if (filter) {
-
-                applyShopFilter(
-                    filter
-                );
-
-            }
-
-        } else {
-
-            App.state.route =
-                page.id.replace(
-                    /-page$/,
-                    ""
-                );
-
-        }
-
-        emit(
-            "navigation:changed",
-            {
-                page:
-                    page.id,
-                route:
-                    App.state.route,
-                filter:
-                    filter || null
-            }
-        );
-
-        emit(
-            "route:changed",
-            {
-                page:
-                    page.id,
-                route:
-                    App.state.route
-            }
-        );
-
-        /*
-         * Update active navigation state.
-         */
-        $all(
-            "[data-target]"
-        ).forEach(
-            function (element) {
-
-                element.classList.remove(
-                    "active"
-                );
-
-            }
-        );
-
-        $all(
-            '[data-target="' +
-            page.id +
-            '"]'
-        ).forEach(
-            function (element) {
-
-                element.classList.add(
-                    "active"
-                );
-
-            }
-        );
-
-        /*
-         * Close mobile menu after navigation.
-         */
-        const mobileMenu =
-            byId(
-                "mobile-menu"
-            );
-
-        if (mobileMenu) {
-
-            mobileMenu.classList.remove(
-                "open",
+        if (App.elements.mobileMenuOverlay) {
+            App.elements.mobileMenuOverlay.classList.add(
                 "active"
             );
-
         }
 
-        /*
-         * Scroll to top unless explicitly disabled.
-         */
-        if (
-            !settings.preserveScroll
-        ) {
-
-            window.requestAnimationFrame(
-                function () {
-
-                    window.scrollTo(
-                        0,
-                        0
-                    );
-
-                }
-            );
-
-        }
-
-        /*
-         * Give product module a chance
-         * to react to the page.
-         */
-        if (
-            page.id ===
-            "shop-page"
-        ) {
-
-            emit(
-                "shop:opened",
-                {
-                    filter:
-                        filter ||
-                        "all"
-                }
-            );
-
-        }
-
-        if (
-            page.id ===
-            "heritage-page"
-        ) {
-
-            emit(
-                "heritage:opened",
-                {}
-            );
-
-        }
-
-        return true;
-
+        setOverlayState("mobile-menu", true);
     }
 
-
-    /* ========================================================
-       NAVIGATION
-    ======================================================== */
-
-    function navigate(
-        target,
-        options
-    ) {
-
-        const settings =
-            options || {};
-
-        const targetPage =
-            normalizePageTarget(
-                target
+    function closeMobileMenu() {
+        if (App.elements.mobileMenu) {
+            App.elements.mobileMenu.classList.remove("active");
+            App.elements.mobileMenu.setAttribute(
+                "aria-hidden",
+                "true"
             );
-
-        const success =
-            showPage(
-                targetPage,
-                settings.filter,
-                settings
-            );
-
-        if (!success) {
-            return false;
         }
 
-        /*
-         * Use the hash instead of changing
-         * the actual document URL path.
-         *
-         * This keeps the site an SPA and
-         * avoids unnecessary Firebase Hosting
-         * 404 problems.
-         */
-        if (
-            settings.updateHash !== false
-        ) {
+        if (App.elements.mobileMenuOverlay) {
+            App.elements.mobileMenuOverlay.classList.remove(
+                "active"
+            );
+        }
 
-            try {
+        setOverlayState("mobile-menu", false);
+    }
 
-                const hash =
-                    targetPage
-                        .replace(
-                            /-page$/,
-                            ""
-                        );
+    /* ======================================================
+       SUPPORT PANEL
+    ====================================================== */
 
-                history.replaceState(
-                    null,
-                    "",
-                    "#" +
-                    hash
+    function openSupportPanel() {
+        openElement(
+            App.elements.supportPanel,
+            "support"
+        );
+    }
+
+    function closeSupportPanel() {
+        closeElement(
+            App.elements.supportPanel,
+            "support"
+        );
+    }
+
+    function toggleSupportPanel() {
+        const panel = App.elements.supportPanel;
+
+        if (!panel) {
+            return;
+        }
+
+        if (panel.classList.contains("active")) {
+            closeSupportPanel();
+        } else {
+            openSupportPanel();
+        }
+    }
+
+    /* ======================================================
+       COUNTER BADGES
+    ====================================================== */
+
+    function renderCountBadges(elements, count) {
+        const normalizedCount = Math.max(
+            0,
+            Number(count) || 0
+        );
+
+        elements.forEach(function (badge) {
+            badge.textContent =
+                normalizedCount > 99
+                    ? "99+"
+                    : String(normalizedCount);
+
+            badge.hidden = normalizedCount === 0;
+            badge.setAttribute(
+                "aria-label",
+                normalizedCount + " items"
+            );
+        });
+    }
+
+    function setCartCount(count) {
+        App.state.cartCount = Math.max(
+            0,
+            Number(count) || 0
+        );
+
+        renderCountBadges(
+            App.elements.cartBadges,
+            App.state.cartCount
+        );
+    }
+
+    function setWishlistCount(count) {
+        App.state.wishlistCount = Math.max(
+            0,
+            Number(count) || 0
+        );
+
+        renderCountBadges(
+            App.elements.wishlistBadges,
+            App.state.wishlistCount
+        );
+    }
+
+    /* ======================================================
+       NAVIGATION STATE
+    ====================================================== */
+
+    function normalizeRoute(route) {
+        return String(route || "home")
+            .trim()
+            .replace(/^#\/?/, "")
+            .replace(/^\/+|\/+$/g, "")
+            .toLowerCase() || "home";
+    }
+
+    function updateNavigationState(route) {
+        const normalizedRoute = normalizeRoute(route);
+
+        App.elements.navigationLinks.forEach(
+            function (link) {
+                const linkRoute = normalizeRoute(
+                    link.dataset.route ||
+                    link.getAttribute("href")
                 );
 
-            } catch (error) {
+                const isActive =
+                    linkRoute === normalizedRoute;
 
-                console.warn(
-                    "[L'ÉTERNEL] Could not update URL hash.",
+                link.classList.toggle(
+                    "active",
+                    isActive
+                );
+
+                if (isActive) {
+                    link.setAttribute(
+                        "aria-current",
+                        "page"
+                    );
+                } else {
+                    link.removeAttribute(
+                        "aria-current"
+                    );
+                }
+            }
+        );
+    }
+
+    function showPage(route) {
+        const normalizedRoute = normalizeRoute(route);
+
+        if (!App.elements.pageSections.length) {
+            App.state.currentRoute = normalizedRoute;
+            updateNavigationState(normalizedRoute);
+            return;
+        }
+
+        let pageFound = false;
+
+        App.elements.pageSections.forEach(
+            function (section) {
+                const sectionRoute = normalizeRoute(
+                    section.dataset.page ||
+                    section.id.replace(/-page$/, "")
+                );
+
+                const isActive =
+                    sectionRoute === normalizedRoute;
+
+                section.classList.toggle(
+                    "active",
+                    isActive
+                );
+
+                section.hidden = !isActive;
+
+                if (isActive) {
+                    pageFound = true;
+                }
+            }
+        );
+
+        if (!pageFound && normalizedRoute !== "home") {
+            showPage("home");
+            return;
+        }
+
+        App.state.currentRoute = normalizedRoute;
+        updateNavigationState(normalizedRoute);
+        closeMobileMenu();
+
+        window.scrollTo({
+            top: 0,
+            behavior:
+                window.matchMedia(
+                    "(prefers-reduced-motion: reduce)"
+                ).matches
+                    ? "auto"
+                    : "smooth"
+        });
+
+        document.dispatchEvent(
+            new CustomEvent("app:routechange", {
+                detail: {
+                    route: normalizedRoute
+                }
+            })
+        );
+    }
+
+    function navigate(route, options) {
+        const normalizedRoute = normalizeRoute(route);
+        const settings = options || {};
+
+        if (!settings.skipHistory) {
+            window.history.pushState(
+                {
+                    route: normalizedRoute
+                },
+                "",
+                "#/" + normalizedRoute
+            );
+        }
+
+        showPage(normalizedRoute);
+    }
+
+    function getInitialRoute() {
+        return normalizeRoute(
+            window.location.hash || "home"
+        );
+    }
+
+    /* ======================================================
+       NAVBAR & SCROLL
+    ====================================================== */
+
+    function handleScroll() {
+        const scrollTop =
+            window.pageYOffset ||
+            document.documentElement.scrollTop;
+
+        if (App.elements.navbar) {
+            App.elements.navbar.classList.toggle(
+                "scrolled",
+                scrollTop > App.config.scrollThreshold
+            );
+        }
+
+        if (App.elements.scrollToTop) {
+            App.elements.scrollToTop.classList.toggle(
+                "visible",
+                scrollTop > 650
+            );
+        }
+    }
+
+    function scrollToTop() {
+        window.scrollTo({
+            top: 0,
+            behavior:
+                window.matchMedia(
+                    "(prefers-reduced-motion: reduce)"
+                ).matches
+                    ? "auto"
+                    : "smooth"
+        });
+    }
+
+    /* ======================================================
+       ONLINE / OFFLINE STATE
+    ====================================================== */
+
+    function updateConnectionStatus(isOnline) {
+        App.state.isOnline = Boolean(isOnline);
+
+        const banner = App.elements.offlineBanner;
+
+        if (banner) {
+            banner.classList.toggle(
+                "active",
+                !App.state.isOnline
+            );
+
+            banner.classList.toggle(
+                "online",
+                App.state.isOnline
+            );
+
+            const text =
+                query("[data-offline-text]", banner) ||
+                query("span", banner);
+
+            if (text) {
+                text.textContent = App.state.isOnline
+                    ? "You are back online."
+                    : "You are offline. Some features may be unavailable.";
+            }
+        }
+
+        document.dispatchEvent(
+            new CustomEvent(
+                "app:connectionchange",
+                {
+                    detail: {
+                        isOnline: App.state.isOnline
+                    }
+                }
+            )
+        );
+
+        if (App.state.isOnline) {
+            showToast({
+                type: "success",
+                title: "Connection restored",
+                message: "You are back online.",
+                duration: 2800
+            });
+        }
+    }
+
+    /* ======================================================
+       AUTHENTICATION STATE
+    ====================================================== */
+
+    function setCurrentUser(user) {
+        App.state.currentUser = user || null;
+
+        document.body.classList.toggle(
+            "is-authenticated",
+            Boolean(user)
+        );
+
+        document.body.classList.toggle(
+            "is-guest",
+            !user
+        );
+
+        queryAll("[data-auth-only]").forEach(
+            function (element) {
+                element.hidden = !user;
+            }
+        );
+
+        queryAll("[data-guest-only]").forEach(
+            function (element) {
+                element.hidden = Boolean(user);
+            }
+        );
+
+        queryAll("[data-user-name]").forEach(
+            function (element) {
+                element.textContent = user
+                    ? user.displayName ||
+                      user.email ||
+                      "Customer"
+                    : "Guest";
+            }
+        );
+
+        queryAll("[data-user-email]").forEach(
+            function (element) {
+                element.textContent = user
+                    ? user.email || ""
+                    : "";
+            }
+        );
+
+        queryAll("[data-user-avatar]").forEach(
+            function (image) {
+                if (user && user.photoURL) {
+                    image.src = user.photoURL;
+                }
+            }
+        );
+
+        document.dispatchEvent(
+            new CustomEvent(
+                "app:authchange",
+                {
+                    detail: {
+                        user: user || null
+                    }
+                }
+            )
+        );
+    }
+
+    function observeAuthentication() {
+        if (
+            !window.FirebaseServices ||
+            !window.FirebaseServices.auth
+        ) {
+            console.warn(
+                "[App] Firebase authentication is unavailable."
+            );
+
+            return;
+        }
+
+        window.FirebaseServices.auth.onAuthStateChanged(
+            function (user) {
+                setCurrentUser(user);
+
+                if (
+                    user &&
+                    App.elements.authModal &&
+                    App.elements.authModal.classList.contains(
+                        "active"
+                    )
+                ) {
+                    closeAuthModal();
+                }
+            },
+            function (error) {
+                console.error(
+                    "[App] Authentication state error:",
                     error
                 );
 
+                showToast({
+                    type: "error",
+                    title: "Authentication error",
+                    message:
+                        error.message ||
+                        "Unable to verify your session."
+                });
             }
-
-        }
-
-        return true;
-
+        );
     }
 
+    /* ======================================================
+       NEWSLETTER
+    ====================================================== */
 
-    /* ========================================================
-       GLOBAL DATA-TARGET NAVIGATION
-       ======================================================== */
+    function handleNewsletterSubmit(event) {
+        event.preventDefault();
 
-    function installNavigation() {
+        const form = event.currentTarget;
+        const input = query(
+            'input[type="email"]',
+            form
+        );
 
+        if (!input) {
+            return;
+        }
+
+        const email = input.value.trim();
+
+        if (!isValidEmail(email)) {
+            showToast({
+                type: "error",
+                title: "Invalid email",
+                message:
+                    "Please enter a valid email address."
+            });
+
+            input.focus();
+            return;
+        }
+
+        showToast({
+            type: "success",
+            title: "Welcome to L'ÉTERNEL",
+            message:
+                "You have successfully joined our private newsletter."
+        });
+
+        form.reset();
+
+        document.dispatchEvent(
+            new CustomEvent(
+                "app:newsletter",
+                {
+                    detail: {
+                        email: email
+                    }
+                }
+            )
+        );
+    }
+
+    function isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+            String(email || "")
+        );
+    }
+
+    /* ======================================================
+       CONTACT FORM
+    ====================================================== */
+
+    function handleContactSubmit(event) {
+        event.preventDefault();
+
+        const form = event.currentTarget;
+        const submitButton = query(
+            'button[type="submit"]',
+            form
+        );
+
+        const formData = new FormData(form);
+
+        const name = String(
+            formData.get("name") ||
+            formData.get("fullName") ||
+            ""
+        ).trim();
+
+        const email = String(
+            formData.get("email") || ""
+        ).trim();
+
+        const message = String(
+            formData.get("message") || ""
+        ).trim();
+
+        if (!name || !isValidEmail(email) || !message) {
+            showToast({
+                type: "error",
+                title: "Incomplete message",
+                message:
+                    "Please provide your name, email address, and message."
+            });
+
+            return;
+        }
+
+        if (submitButton) {
+            submitButton.classList.add("loading");
+            submitButton.disabled = true;
+        }
+
+        document.dispatchEvent(
+            new CustomEvent(
+                "app:contactsubmit",
+                {
+                    detail: {
+                        name: name,
+                        email: email,
+                        subject:
+                            String(
+                                formData.get("subject") || ""
+                            ).trim(),
+                        message: message,
+                        form: form
+                    }
+                }
+            )
+        );
+
+        window.setTimeout(function () {
+            if (submitButton) {
+                submitButton.classList.remove("loading");
+                submitButton.disabled = false;
+            }
+
+            form.reset();
+
+            showToast({
+                type: "success",
+                title: "Message received",
+                message:
+                    "Thank you. Our client services team will respond shortly."
+            });
+        }, 650);
+    }
+
+    /* ======================================================
+       EVENT BINDING
+    ====================================================== */
+
+    function bindNavigationEvents() {
         document.addEventListener(
             "click",
             function (event) {
+                const routeLink = event.target.closest(
+                    "[data-route]"
+                );
 
-                const trigger =
-                    event.target.closest(
-                        "[data-target]"
-                    );
-
-                if (!trigger) {
+                if (!routeLink) {
                     return;
                 }
 
-                if (
-                    trigger.dataset
-                        .noNavigation ===
-                    "true"
-                ) {
+                const route =
+                    routeLink.dataset.route;
 
-                    return;
-
-                }
-
-                /*
-                 * Never hijack form controls.
-                 */
-                if (
-                    trigger.tagName ===
-                    "INPUT" ||
-                    trigger.tagName ===
-                    "SELECT" ||
-                    trigger.tagName ===
-                    "TEXTAREA"
-                ) {
-
-                    return;
-
-                }
-
-                const target =
-                    trigger.getAttribute(
-                        "data-target"
-                    );
-
-                if (!target) {
-                    return;
-                }
-
-                const page =
-                    findPage(target);
-
-                /*
-                 * If it is not an actual SPA
-                 * page target, allow other modules
-                 * to handle it.
-                 */
-                if (!page) {
+                if (!route) {
                     return;
                 }
 
                 event.preventDefault();
+                navigate(route);
+            }
+        );
 
-                /*
-                 * Do NOT use stopImmediatePropagation().
-                 *
-                 * Other modules such as Cart,
-                 * Wishlist and Product Details
-                 * still need their click handlers.
-                 */
-                event.stopPropagation();
+        window.addEventListener(
+            "popstate",
+            function (event) {
+                const route =
+                    event.state &&
+                    event.state.route
+                        ? event.state.route
+                        : getInitialRoute();
 
-                const filter =
-                    trigger.getAttribute(
-                        "data-filter"
-                    );
+                showPage(route);
+            }
+        );
 
-                navigate(
-                    target,
-                    {
-                        filter:
-                            filter || null
+        window.addEventListener(
+            "hashchange",
+            function () {
+                showPage(getInitialRoute());
+            }
+        );
+    }
+
+    function bindOverlayEvents() {
+        App.elements.searchTriggers.forEach(
+            function (trigger) {
+                trigger.addEventListener(
+                    "click",
+                    openSearch
+                );
+            }
+        );
+
+        if (App.elements.searchClose) {
+            App.elements.searchClose.addEventListener(
+                "click",
+                closeSearch
+            );
+        }
+
+        App.elements.cartTriggers.forEach(
+            function (trigger) {
+                trigger.addEventListener(
+                    "click",
+                    openCart
+                );
+            }
+        );
+
+        if (App.elements.cartClose) {
+            App.elements.cartClose.addEventListener(
+                "click",
+                closeCart
+            );
+        }
+
+        App.elements.wishlistTriggers.forEach(
+            function (trigger) {
+                trigger.addEventListener(
+                    "click",
+                    openWishlist
+                );
+            }
+        );
+
+        if (App.elements.wishlistClose) {
+            App.elements.wishlistClose.addEventListener(
+                "click",
+                closeWishlist
+            );
+        }
+
+        App.elements.profileTriggers.forEach(
+            function (trigger) {
+                trigger.addEventListener(
+                    "click",
+                    openProfileModal
+                );
+            }
+        );
+
+        App.elements.authTriggers.forEach(
+            function (trigger) {
+                trigger.addEventListener(
+                    "click",
+                    function () {
+                        openAuthModal(
+                            trigger.dataset.authPanel ||
+                            "login"
+                        );
                     }
                 );
-
-            },
-            false
-        );
-
-    }
-
-
-    /* ========================================================
-       MOBILE MENU
-    ======================================================== */
-
-    function installMobileMenu() {
-
-        document.addEventListener(
-            "click",
-            function (event) {
-
-                const hamburger =
-                    event.target.closest(
-                        "#hamburger, #menu-toggle, [data-menu-toggle]"
-                    );
-
-                if (!hamburger) {
-                    return;
-                }
-
-                event.preventDefault();
-                event.stopPropagation();
-
-                const mobileMenu =
-                    byId(
-                        "mobile-menu"
-                    );
-
-                if (!mobileMenu) {
-                    return;
-                }
-
-                mobileMenu.classList.toggle(
-                    "open"
-                );
-
-                mobileMenu.classList.toggle(
-                    "active"
-                );
-
-                const expanded =
-                    mobileMenu.classList.contains(
-                        "open"
-                    );
-
-                hamburger.setAttribute(
-                    "aria-expanded",
-                    expanded
-                        ? "true"
-                        : "false"
-                );
-
-            },
-            false
-        );
-
-    }
-
-
-    /* ========================================================
-       ESCAPE KEY
-    ======================================================== */
-
-    function installEscapeHandler() {
-
-        document.addEventListener(
-            "keydown",
-            function (event) {
-
-                if (
-                    event.key !==
-                    "Escape"
-                ) {
-                    return;
-                }
-
-                closeAllOverlays();
-
-                const mobileMenu =
-                    byId(
-                        "mobile-menu"
-                    );
-
-                if (mobileMenu) {
-
-                    mobileMenu.classList.remove(
-                        "open",
-                        "active"
-                    );
-
-                }
-
             }
         );
 
-    }
-
-
-    /* ========================================================
-       BACK / FORWARD SUPPORT
-    ======================================================== */
-
-    function restoreHashRoute() {
-
-        let hash =
-            window.location.hash
-                .replace(
-                    /^#/,
-                    ""
-                );
-
-        if (!hash) {
-
-            navigate(
-                "home-page",
-                {
-                    updateHash:
-                        false,
-                    preserveScroll:
-                        true
-                }
-            );
-
-            return;
-
-        }
-
-        /*
-         * Convert:
-         *
-         * #shop
-         * #heritage
-         * #menswear
-         *
-         * into their appropriate page.
-         */
-        if (
-            hash ===
-            "shop"
-        ) {
-
-            navigate(
-                "shop-page",
-                {
-                    updateHash:
-                        false
-                }
-            );
-
-            return;
-
-        }
-
-        if (
-            hash ===
-            "heritage"
-        ) {
-
-            navigate(
-                "heritage-page",
-                {
-                    updateHash:
-                        false
-                }
-            );
-
-            return;
-
-        }
-
-        if (
-            hash ===
-            "menswear" ||
-            hash ===
-            "womenswear" ||
-            hash ===
-            "accessories"
-        ) {
-
-            navigate(
-                "shop-page",
-                {
-                    filter:
-                        hash,
-                    updateHash:
-                        false
-                }
-            );
-
-            return;
-
-        }
-
-        const page =
-            findPage(hash);
-
-        if (page) {
-
-            navigate(
-                page.id,
-                {
-                    updateHash:
-                        false
-                }
-            );
-
-            return;
-
-        }
-
-        navigate(
-            "home-page",
-            {
-                updateHash:
-                    false
-            }
-        );
-
-    }
-
-
-    /* ========================================================
-       SAFE PRODUCT CARD FALLBACK
-    ======================================================== */
-
-    function installProductFallback() {
-
-        document.addEventListener(
-            "click",
-            function (event) {
-
-                const trigger =
-                    event.target.closest(
-                        "[data-product-id], [data-product]"
-                    );
-
-                if (!trigger) {
-                    return;
-                }
-
-                /*
-                 * Product module gets first opportunity.
-                 */
-                if (
-                    trigger.dataset
-                        .noProductNavigation ===
-                    "true"
-                ) {
-
-                    return;
-
-                }
-
-                const productId =
-                    trigger.getAttribute(
-                        "data-product-id"
-                    ) ||
-                    trigger.getAttribute(
-                        "data-product"
-                    );
-
-                if (!productId) {
-                    return;
-                }
-
-                /*
-                 * If a real Product module exists,
-                 * don't interfere with it.
-                 */
-                if (
-                    global.LEternelProducts &&
-                    typeof global.LEternelProducts
-                        .openProduct ===
-                        "function"
-                ) {
-
-                    return;
-
-                }
-
-                const productPage =
-                    findPage(
-                        "product-page"
-                    );
-
-                if (!productPage) {
-                    return;
-                }
-
-                event.preventDefault();
-
-                App.state.product.current =
-                    productId;
-
-                navigate(
-                    "product-page"
-                );
-
-                emit(
-                    "product:open",
-                    {
-                        productId:
-                            productId
-                    }
-                );
-
-            },
-            false
-        );
-
-    }
-
-
-    /* ========================================================
-       AUTH STATE BRIDGE
-    ======================================================== */
-
-    function installAuthBridge() {
-
-        /*
-         * Firebase v8 auth listener is only installed
-         * when FirebaseServices is already available.
-         *
-         * This prevents app.js from breaking when
-         * firebase.js loads afterward.
-         */
-
-        function connectAuth() {
-
-            const services =
-                global.FirebaseServices;
-
-            if (
-                !services ||
-                !services.auth ||
-                typeof services.auth
-                    .onAuthStateChanged !==
-                    "function"
-            ) {
-
-                return false;
-
-            }
-
-            services.auth.onAuthStateChanged(
-                function (user) {
-
-                    App.state.user =
-                        user || null;
-
-                    emit(
-                        "auth:changed",
-                        {
-                            user:
-                                user || null
-                        }
-                    );
-
-                }
-            );
-
-            return true;
-
-        }
-
-        if (!connectAuth()) {
-
-            document.addEventListener(
-                "firebase:ready",
-                function () {
-
-                    connectAuth();
-
-                },
-                {
-                    once: true
-                }
-            );
-
-        }
-
-    }
-
-
-    /* ========================================================
-       STARTUP SPLASH
-    ======================================================== */
-
-    function removeStartupScreens() {
-
-        const selectors = [
-
-            "#page-loader",
-
-            "#splash-screen",
-
-            "#preloader",
-
-            "#loading-screen",
-
-            ".splash-screen",
-
-            ".preloader",
-
-            ".loading-screen",
-
-            "[data-app-splash]",
-
-            "[data-preloader]",
-
-            "[data-loading-screen]"
-
-        ];
-
-        selectors.forEach(
-            function (selector) {
-
-                $all(
-                    selector
-                ).forEach(
-                    function (element) {
-
-                        element.classList.add(
-                            "is-hidden"
+        App.elements.modalCloseButtons.forEach(
+            function (button) {
+                button.addEventListener(
+                    "click",
+                    function () {
+                        const overlay = button.closest(
+                            ".modal, .account-overlay, .auth-modal, .profile-modal"
                         );
 
-                        element.setAttribute(
+                        if (overlay) {
+                            overlay.classList.remove(
+                                "active",
+                                "open"
+                            );
+
+                            overlay.setAttribute(
+                                "aria-hidden",
+                                "true"
+                            );
+
+                            App.state.activeOverlay = null;
+                            document.body.classList.remove(
+                                "no-scroll"
+                            );
+                        }
+                    }
+                );
+            }
+        );
+
+        if (App.elements.cartOverlay) {
+            App.elements.cartOverlay.addEventListener(
+                "click",
+                function () {
+                    closeCart();
+                    closeWishlist();
+                }
+            );
+        }
+
+        if (App.elements.searchOverlay) {
+            App.elements.searchOverlay.addEventListener(
+                "click",
+                function (event) {
+                    if (
+                        event.target ===
+                        App.elements.searchOverlay
+                    ) {
+                        closeSearch();
+                    }
+                }
+            );
+        }
+
+        queryAll(
+            ".account-overlay, .modal, .auth-modal, .profile-modal"
+        ).forEach(function (overlay) {
+            overlay.addEventListener(
+                "click",
+                function (event) {
+                    if (event.target === overlay) {
+                        overlay.classList.remove(
+                            "active",
+                            "open"
+                        );
+
+                        overlay.setAttribute(
                             "aria-hidden",
                             "true"
                         );
 
-                        window.setTimeout(
-                            function () {
-
-                                if (
-                                    element &&
-                                    element.parentNode
-                                ) {
-
-                                    element.parentNode
-                                        .removeChild(
-                                            element
-                                        );
-
-                                }
-
-                            },
-                            500
+                        App.state.activeOverlay = null;
+                        document.body.classList.remove(
+                            "no-scroll"
                         );
-
                     }
-                );
-
-            }
-        );
-
-        const wrapper =
-            byId(
-                "app-wrapper"
-            );
-
-        if (wrapper) {
-
-            wrapper.classList.add(
-                "is-ready"
-            );
-
-            wrapper.removeAttribute(
-                "aria-hidden"
-            );
-
-        }
-
-        document.documentElement
-            .classList.add(
-                "app-ready"
-            );
-
-        document.body
-            .classList.add(
-                "app-ready"
-            );
-
-    }
-
-
-    /* ========================================================
-       INITIAL PAGE
-    ======================================================== */
-
-    function initializePage() {
-
-        const sections =
-            getViewSections();
-
-        if (!sections.length) {
-
-            console.warn(
-                "[L'ÉTERNEL] No .view-section elements found."
-            );
-
-            return;
-
-        }
-
-        /*
-         * Hide only SPA views.
-         */
-        sections.forEach(
-            function (section) {
-
-                section.classList.remove(
-                    "active",
-                    "active-view"
-                );
-
-                section.setAttribute(
-                    "aria-hidden",
-                    "true"
-                );
-
-                section.style.display =
-                    "none";
-
-            }
-        );
-
-        /*
-         * Hash determines startup route.
-         */
-        restoreHashRoute();
-
-    }
-
-
-    /* ========================================================
-       APPLICATION READY
-    ======================================================== */
-
-    function markReady() {
-
-        if (App.ready) {
-            return;
-        }
-
-        App.ready =
-            true;
-
-        App.initialized =
-            true;
-
-        removeStartupScreens();
-
-        emit(
-            "app:ready",
-            {
-                app:
-                    App
-            }
-        );
-
-        console.info(
-            "[L'ÉTERNEL] Store ready."
-        );
-
-    }
-
-
-    /* ========================================================
-       INITIALIZATION
-    ======================================================== */
-
-    function initialize() {
-
-        if (
-            App.initialized
-        ) {
-
-            return App;
-
-        }
-
-        App.initialized =
-            true;
-
-        installNavigation();
-
-        installMobileMenu();
-
-        installEscapeHandler();
-
-        installProductFallback();
-
-        installAuthBridge();
-
-        /*
-         * DOMContentLoaded can already have fired
-         * when this file is loaded at the bottom
-         * of the document.
-         */
-        if (
-            document.readyState ===
-            "loading"
-        ) {
-
-            document.addEventListener(
-                "DOMContentLoaded",
-                function () {
-
-                    initializePage();
-
-                    window.setTimeout(
-                        markReady,
-                        0
-                    );
-
-                },
-                {
-                    once: true
                 }
             );
+        });
+    }
 
-        } else {
-
-            initializePage();
-
-            window.setTimeout(
-                markReady,
-                0
+    function bindMobileMenuEvents() {
+        if (App.elements.mobileMenuToggle) {
+            App.elements.mobileMenuToggle.addEventListener(
+                "click",
+                openMobileMenu
             );
-
         }
 
-        emit(
-            "app:initialized",
-            {
-                app:
-                    App
+        if (App.elements.mobileMenuClose) {
+            App.elements.mobileMenuClose.addEventListener(
+                "click",
+                closeMobileMenu
+            );
+        }
+
+        if (App.elements.mobileMenuOverlay) {
+            App.elements.mobileMenuOverlay.addEventListener(
+                "click",
+                closeMobileMenu
+            );
+        }
+    }
+
+    function bindSupportEvents() {
+        if (App.elements.supportButton) {
+            App.elements.supportButton.addEventListener(
+                "click",
+                toggleSupportPanel
+            );
+        }
+
+        if (App.elements.supportClose) {
+            App.elements.supportClose.addEventListener(
+                "click",
+                closeSupportPanel
+            );
+        }
+    }
+
+    function bindFormEvents() {
+        App.elements.newsletterForms.forEach(
+            function (form) {
+                form.addEventListener(
+                    "submit",
+                    handleNewsletterSubmit
+                );
             }
         );
 
-        console.info(
-            "[L'ÉTERNEL] Core initialized."
-        );
-
-        return App;
-
+        if (App.elements.contactForm) {
+            App.elements.contactForm.addEventListener(
+                "submit",
+                handleContactSubmit
+            );
+        }
     }
 
+    function bindGlobalEvents() {
+        window.addEventListener(
+            "scroll",
+            handleScroll,
+            {
+                passive: true
+            }
+        );
 
-    /* ========================================================
-       PUBLIC API
-    ======================================================== */
+        window.addEventListener(
+            "online",
+            function () {
+                updateConnectionStatus(true);
+            }
+        );
 
-    App.registerModule =
-        registerModule;
+        window.addEventListener(
+            "offline",
+            function () {
+                updateConnectionStatus(false);
+            }
+        );
 
-    App.getModule =
-        getModule;
+        window.addEventListener(
+            "resize",
+            function () {
+                if (
+                    window.innerWidth >
+                    App.config.mobileBreakpoint
+                ) {
+                    closeMobileMenu();
+                }
+            }
+        );
 
-    App.hasModule =
-        hasModule;
+        document.addEventListener(
+            "keydown",
+            function (event) {
+                if (event.key === "Escape") {
+                    closeAllOverlays();
+                }
 
-    App.registerService =
-        registerService;
+                const searchShortcut =
+                    (event.ctrlKey || event.metaKey) &&
+                    event.key.toLowerCase() === "k";
 
-    App.getService =
-        getService;
+                if (searchShortcut) {
+                    event.preventDefault();
 
-    App.setState =
-        setState;
+                    if (
+                        App.elements.searchOverlay &&
+                        App.elements.searchOverlay.classList.contains(
+                            "active"
+                        )
+                    ) {
+                        closeSearch();
+                    } else {
+                        openSearch();
+                    }
+                }
+            }
+        );
 
-    App.getState =
-        getState;
+        if (App.elements.scrollToTop) {
+            App.elements.scrollToTop.addEventListener(
+                "click",
+                scrollToTop
+            );
+        }
 
-    App.emit =
-        emit;
+        document.addEventListener(
+            "click",
+            function (event) {
+                const authSwitch = event.target.closest(
+                    "[data-auth-tab]"
+                );
 
-    App.on =
-        on;
+                if (authSwitch) {
+                    activateAuthPanel(
+                        authSwitch.dataset.authTab
+                    );
+                }
+            }
+        );
+    }
 
-    App.once =
-        once;
+    /* ======================================================
+       INITIAL INTERFACE STATE
+    ====================================================== */
 
-    App.utils.$ =
-        $;
+    function initializeInterfaceState() {
+        setCartCount(0);
+        setWishlistCount(0);
+        handleScroll();
 
-    App.utils.$all =
-        $all;
+        const initialRoute = getInitialRoute();
 
-    App.utils.byId =
-        byId;
+        window.history.replaceState(
+            {
+                route: initialRoute
+            },
+            "",
+            "#/" + initialRoute
+        );
 
-    App.utils.escapeHTML =
-        escapeHTML;
+        showPage(initialRoute);
 
-    App.utils.toNumber =
-        toNumber;
+        if (!App.state.isOnline) {
+            updateConnectionStatus(false);
+        }
+    }
 
-    App.utils.clamp =
-        clamp;
+    /* ======================================================
+       APPLICATION INITIALIZATION
+    ====================================================== */
 
-    App.utils.clone =
-        clone;
+    function initialize() {
+        if (App.state.initialized) {
+            return;
+        }
 
-    App.utils.formatPrice =
-        formatPrice;
+        cacheElements();
 
-    App.utils.formatDate =
-        formatDate;
+        bindNavigationEvents();
+        bindOverlayEvents();
+        bindMobileMenuEvents();
+        bindSupportEvents();
+        bindFormEvents();
+        bindGlobalEvents();
 
-    App.setCartCount =
-        setCartCount;
+        initializeInterfaceState();
+        observeAuthentication();
 
-    App.setWishlistCount =
-        setWishlistCount;
+        App.state.initialized = true;
 
-    App.showToast =
-        showToast;
+        document.documentElement.classList.add(
+            "app-ready"
+        );
 
-    App.showLoader =
-        showLoader;
+        document.dispatchEvent(
+            new CustomEvent("app:ready", {
+                detail: {
+                    app: App
+                }
+            })
+        );
 
-    App.hideLoader =
-        hideLoader;
+        hideLoader();
 
-    App.openModal =
-        openModal;
+        console.info(
+            "[App] L'ÉTERNEL Store initialized."
+        );
+    }
 
-    App.closeModal =
-        closeModal;
+    /* ======================================================
+       PUBLIC APPLICATION API
+    ====================================================== */
 
-    App.closeAllOverlays =
-        closeAllOverlays;
+    App.init = initialize;
 
-    App.showPage =
-        showPage;
+    App.navigate = navigate;
+    App.showPage = showPage;
 
-    App.navigate =
-        navigate;
+    App.showLoader = showLoader;
+    App.hideLoader = hideLoader;
 
-    App.applyShopFilter =
-        applyShopFilter;
+    App.showToast = showToast;
+    App.removeToast = removeToast;
 
-    App.markReady =
-        markReady;
+    App.openSearch = openSearch;
+    App.closeSearch = closeSearch;
 
-    App.init =
-        initialize;
+    App.openCart = openCart;
+    App.closeCart = closeCart;
 
+    App.openWishlist = openWishlist;
+    App.closeWishlist = closeWishlist;
 
-    /* ========================================================
-       EXPOSE BEFORE OTHER MODULES LOAD
-    ======================================================== */
+    App.openProfile = openProfileModal;
+    App.closeProfile = closeProfileModal;
 
-    global.LEternelApp =
-        App;
+    App.openAuth = openAuthModal;
+    App.closeAuth = closeAuthModal;
+    App.activateAuthPanel = activateAuthPanel;
 
+    App.openMobileMenu = openMobileMenu;
+    App.closeMobileMenu = closeMobileMenu;
 
-    /* ========================================================
-       INITIALIZE
-    ======================================================== */
+    App.setCartCount = setCartCount;
+    App.setWishlistCount = setWishlistCount;
 
-    initialize();
+    App.setCurrentUser = setCurrentUser;
+    App.closeAllOverlays = closeAllOverlays;
 
+    App.utils = Object.freeze({
+        query: query,
+        queryAll: queryAll,
+        getById: getById,
+        createElement: createElement,
+        escapeHTML: escapeHTML,
+        isValidEmail: isValidEmail,
+        normalizeRoute: normalizeRoute
+    });
 
-})(
-    typeof window !==
-        "undefined"
-        ? window
-        : globalThis
-);
+    window.LEternelApp = App;
+
+    /* ======================================================
+       START APPLICATION
+    ====================================================== */
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            initialize,
+            {
+                once: true
+            }
+        );
+    } else {
+        initialize();
+    }
+})();
 ```
