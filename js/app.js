@@ -1,4 +1,4 @@
-```javascript
+//javascript
 "use strict";
 
 /*
@@ -2541,4 +2541,3 @@ for existing data-target navigation in the HTML.
         ? window
         : globalThis
 );
-```
