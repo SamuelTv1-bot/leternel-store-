@@ -15749,19 +15749,6 @@ body.modal-open {
 }
 
 
-/* ==========================================================
-   SPA PAGE SAFETY
-========================================================== */
-
-.view-section {
-    display: none !important;
-}
-
-.view-section.active-view,
-.view-section.active {
-    display: block !important;
-}
-
 
 /* ==========================================================
    CONTACT PAGE FIX
