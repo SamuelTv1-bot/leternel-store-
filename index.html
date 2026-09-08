@@ -35,7 +35,7 @@
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <link rel="stylesheet"
-          href="style.css">
+          href="styles.css">
 
 </head>
 
@@ -79,73 +79,186 @@ APP WRAPPER
 NAVIGATION
 ============================ -->
 
-<header class="navbar" id="navbar">
-    <div class="nav-container">
-        <div class="nav-left">
-            <button id="hamburger" class="hamburger">
-                <i class="fas fa-bars"></i>
-            </button>
+<header class="navbar"
+        id="navbar">
 
-            <nav>
-                <ul id="nav-links">
-                    <li>
-                        <a href="#/" class="nav-link active">Home</a>
-                    </li>
-                    <li>
-                        <a href="#/shop" class="nav-link">Collections</a>
-                    </li>
-                    <li>
-                        <a href="#/heritage" class="nav-link">Heritage</a>
-                    </li>
-                    <li>
-                        <a href="#/contact" class="nav-link">Contact</a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
+<div class="nav-container">
 
-        <div class="logo">
-            <a href="#/">L'ÉTERNEL</a>
-        </div>
+<div class="nav-left">
 
-        <div class="nav-right">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input
-                    id="search-input"
-                    type="text"
-                    placeholder="Search products..."
-                    autocomplete="off">
-            </div>
+<button id="hamburger"
+        class="hamburger">
 
-            <button id="wishlistBtn" class="nav-icon">
-                <i class="far fa-heart"></i>
-                <span id="wishlist-count">0</span>
-            </button>
+<i class="fas fa-bars"></i>
 
-            <button id="openProfile" class="nav-icon">
-                <i class="far fa-user"></i>
-            </button>
+</button>
 
-            <button id="openCart" class="nav-icon cart-btn">
-                <i class="fas fa-shopping-bag"></i>
-                <span id="cart-badge">0</span>
-            </button>
-        </div>
-    </div>
+<nav>
+
+<ul id="nav-links">
+
+<li>
+
+<a href="#"
+   class="nav-link active"
+   data-target="home-page">
+
+Home
+
+</a>
+
+</li>
+
+<li>
+
+<a href="#"
+   class="nav-link"
+   data-target="shop-page">
+
+Collections
+
+</a>
+
+</li>
+
+<li>
+
+<a href="#"
+   class="nav-link"
+   data-target="heritage-page">
+
+Heritage
+
+</a>
+
+</li>
+
+<li>
+
+<a href="#"
+   class="nav-link"
+   data-target="contact-page">
+
+Contact
+
+</a>
+
+</li>
+
+</ul>
+
+</nav>
+
+</div>
+
+<div class="logo">
+
+<a href="#"
+   data-target="home-page">
+
+L'ÉTERNEL
+
+</a>
+
+</div>
+
+<div class="nav-right">
+
+<div class="search-box">
+
+<i class="fas fa-search"></i>
+
+<input
+
+id="search-input"
+
+type="text"
+
+placeholder="Search products..."
+
+autocomplete="off">
+
+</div>
+
+<button
+id="wishlistBtn"
+class="nav-icon">
+
+<i class="far fa-heart"></i>
+
+<span id="wishlist-count">
+
+0
+
+</span>
+
+</button>
+
+<button
+id="openProfile"
+class="nav-icon">
+
+<i class="far fa-user"></i>
+
+</button>
+
+<button
+id="openCart"
+class="nav-icon cart-btn">
+
+<i class="fas fa-shopping-bag"></i>
+
+<span
+id="cart-badge">
+
+0
+
+</span>
+
+</button>
+
+</div>
+
+</div>
+
 </header>
 
 <!-- ===========================
 MOBILE MENU
 ============================ -->
 
-<div id="mobile-menu" class="mobile-menu">
-    <a href="#/" class="mobile-nav-link">Home</a>
-    <a href="#/shop" class="mobile-nav-link">Collections</a>
-    <a href="#/heritage" class="mobile-nav-link">Heritage</a>
-    <a href="#/contact" class="mobile-nav-link">Contact</a>
-</div>
+<div id="mobile-menu"
+     class="mobile-menu">
 
+<a href="#"
+   data-target="home-page">
+
+Home
+
+</a>
+
+<a href="#"
+   data-target="shop-page">
+
+Collections
+
+</a>
+
+<a href="#"
+   data-target="heritage-page">
+
+Heritage
+
+</a>
+
+<a href="#"
+   data-target="contact-page">
+
+Contact
+
+</a>
+
+</div>
 
 <!-- ===========================
 SPA MAIN
@@ -171,8 +284,8 @@ HERO SECTION
 
     <div class="hero-background">
         <img
-    src="./assets/images/hero.png"
-    alt="Luxury Fashion">
+            src="https://images.unsplash.com/photo-1496747611176-843222e1e57f?q=80&w=2000&auto=format&fit=crop"
+            alt="Luxury Fashion">
     </div>
 
     <div class="hero-overlay"></div>
@@ -197,19 +310,28 @@ HERO SECTION
 
         </p>
 
-<div class="hero-buttons">
+        <div class="hero-buttons">
 
-    <a href="#/shop" class="primary-btn">
-    Shop Collection
-</a>
+            <button
+                class="primary-btn"
+                data-target="shop-page">
 
-<a href="#/heritage" class="secondary-btn">
-    Discover Our Story
-</a>
+                Shop Collection
 
-</div>
+            </button>
 
-</div> <!-- CLOSES hero-content -->
+            <button
+                class="secondary-btn"
+                data-target="heritage-page">
+
+                Discover Our Story
+
+            </button>
+
+        </div>
+
+    </div>
+
 </section>
 
 <!-- ==========================================
@@ -242,15 +364,13 @@ FEATURED COLLECTIONS
 
                 <h3>Menswear</h3>
 
-                <a
-    href="#"
-    class="collection-explore"
-    data-target="shop-page"
-    data-filter="menswear">
+                <button
+                    data-target="shop-page"
+                    data-filter="menswear">
 
-    Explore
+                    Explore
 
-</a>
+                </button>
 
             </div>
 
@@ -268,15 +388,13 @@ FEATURED COLLECTIONS
 
                 <h3>Womenswear</h3>
 
-                <a
-    href="#"
-    class="collection-explore"
-    data-target="shop-page"
-    data-filter="womenswear">
+                <button
+                    data-target="shop-page"
+                    data-filter="womenswear">
 
-    Explore
+                    Explore
 
-</a>
+                </button>
 
             </div>
 
@@ -294,15 +412,13 @@ FEATURED COLLECTIONS
 
                 <h3>Accessories</h3>
 
-               <a
-    href="#"
-    class="collection-explore"
-    data-target="shop-page"
-    data-filter="accessories">
+                <button
+                    data-target="shop-page"
+                    data-filter="accessories">
 
-    Explore
+                    Explore
 
-</a>
+                </button>
 
             </div>
 
@@ -1572,7 +1688,7 @@ SHOPPING CART DRAWER
     id="drawerOverlay"
     class="drawer-overlay">
 
-</div> 
+</div>
 
 <!-- =====================================================
 ADMIN DASHBOARD
@@ -2327,251 +2443,27 @@ MOBILE NAVIGATION
 FIREBASE SDK (v8)
 ====================================================== -->
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
-
-<!-- Firebase config -->
-<script src="./js/firebase.js"></script>
-
-<script src="./js/app.js"></script>
-
-<script src="./js/utils.js"></script>
-<script src="./js/auth.js"></script>
-<script src="./js/router.js"></script>
-
-<script src="./js/products.js"></script>
-<script src="./js/cart.js"></script>
-<script src="./js/wishlist.js"></script>
-<script src="./js/checkout.js"></script>
-<script src="./js/profile.js"></script>
-<script src="./js/search.js"></script>
-<script src="./js/ui.js"></script>
-
-<!-- Admin Modules -->
-<script src="public/js/services/admin-auth-service.js"></script>
-<script src="public/js/services/admin-operations-service.js"></script>
-<script src="public/js/admin/admin-auth-guard.js"></script>
-<script src="public/js/admin/admin-router.js"></script>
-<script src="public/js/admin/admin-shell.js"></script>
-</div>
 
 <!-- =====================================================
-CORE NAVIGATION FALLBACK
+APPLICATION SCRIPTS
 ====================================================== -->
 
-<script>
-(function () {
+<script src="firebase.js"></script>
+<script src="utils.js"></script>
+<script src="router.js"></script>
+<script src="products.js"></script>
+<script src="cart.js"></script>
+<script src="checkout.js"></script>
+<script src="profile.js"></script>
+<script src="auth.js"></script>
+<script src="admin.js"></script>
+<script src="app.js"></script>
 
-    function showPage(targetId, filter) {
-
-        if (!targetId) return;
-
-        const target = document.getElementById(targetId);
-
-        if (!target) {
-            console.warn("Navigation target not found:", targetId);
-            return;
-        }
-
-        /*
-         * Hide every SPA view
-         */
-        document.querySelectorAll(".view-section").forEach(function (section) {
-            section.classList.remove("active-view");
-        });
-
-        /*
-         * Show requested page
-         */
-        target.classList.add("active-view");
-
-        /*
-         * Scroll to top
-         */
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
-
-        /*
-         * Close mobile menu
-         */
-        const mobileMenu = document.getElementById("mobile-menu");
-
-        if (mobileMenu) {
-            mobileMenu.classList.remove("open");
-            mobileMenu.classList.remove("active");
-        }
-
-        /*
-         * Handle Shop filters
-         */
-        if (targetId === "shop-page" && filter) {
-
-            const categorySelect =
-                document.getElementById("filter-category");
-
-            if (categorySelect) {
-                categorySelect.value = filter;
-
-                categorySelect.dispatchEvent(
-                    new Event("change", {
-                        bubbles: true
-                    })
-                );
-            }
-
-            /*
-             * Give existing product module a chance
-             * to react to the filter.
-             */
-            window.dispatchEvent(
-                new CustomEvent("leternel:shop-filter", {
-                    detail: {
-                        filter: filter
-                    }
-                })
-            );
-        }
-
-        /*
-         * Update active navigation links
-         */
-        document.querySelectorAll("[data-target]").forEach(function (element) {
-
-            element.classList.remove("active");
-
-        });
-
-        document.querySelectorAll(
-            '[data-target="' + targetId + '"]'
-        ).forEach(function (element) {
-
-            element.classList.add("active");
-
-        });
-
-        /*
-         * Update URL hash without reloading
-         */
-        try {
-
-            history.replaceState(
-                null,
-                "",
-                "#" + targetId
-            );
-
-        } catch (error) {
-
-            console.warn(
-                "Could not update URL:",
-                error
-            );
-
-        }
-    }
-
-
-    /*
-     * GLOBAL CLICK HANDLER
-     *
-     * This catches:
-     * - Shop Collection
-     * - Discover Our Story
-     * - Men's Explore
-     * - Women's Explore
-     * - Accessories Explore
-     * - Navigation links
-     * - Footer shop links
-     * - Mobile Shop
-     * - Mobile Home
-     */
-    document.addEventListener("click", function (event) {
-
-        const trigger = event.target.closest("[data-target]");
-
-        if (!trigger) return;
-
-        /*
-         * Don't interfere with controls that have
-         * explicitly disabled navigation.
-         */
-        if (trigger.dataset.noNavigation === "true") {
-            return;
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        const targetId =
-            trigger.getAttribute("data-target");
-
-        const filter =
-            trigger.getAttribute("data-filter");
-
-        showPage(
-            targetId,
-            filter
-        );
-
-    }, true);
-
-
-    /*
-     * HAMBURGER
-     */
-    const hamburger =
-        document.getElementById("hamburger");
-
-    const mobileMenu =
-        document.getElementById("mobile-menu");
-
-    if (hamburger && mobileMenu) {
-
-        hamburger.addEventListener("click", function (event) {
-
-            event.preventDefault();
-            event.stopPropagation();
-
-            mobileMenu.classList.toggle("open");
-            mobileMenu.classList.toggle("active");
-
-        });
-
-    }
-
-
-    /*
-     * INITIAL PAGE
-     */
-    document.addEventListener("DOMContentLoaded", function () {
-
-        const hash =
-            window.location.hash.replace("#", "");
-
-        if (
-            hash &&
-            document.getElementById(hash) &&
-            document.getElementById(hash).classList.contains("view-section")
-        ) {
-
-            showPage(hash);
-
-        } else {
-
-            showPage("home-page");
-
-        }
-
-    });
-
-})();
-</script>
+</div>
 
 </body>
 </html>
