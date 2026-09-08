@@ -15823,11 +15823,3 @@ body.modal-open {
     }
 }
 
-/* Force inactive SPA view sections to remain completely hidden */
-.view-section {
-    display: none !important;
-}
-
-.view-section.active-view {
-    display: block !important;
-}
