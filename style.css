@@ -1243,3 +1243,951 @@ RESPONSIVE
     }
 
 }
+
+/* ==========================================================
+   PART 3A
+   HOME PAGE
+   Featured Collections + Brand Philosophy
+==========================================================*/
+
+/* ==========================
+   SECTION SPACING
+========================== */
+
+.collections-preview,
+.brand-story{
+
+    padding:120px 0;
+
+    background:#faf9f7;
+
+}
+
+/* ==========================
+   COLLECTION GRID
+========================== */
+
+.collection-grid{
+
+    width:92%;
+
+    max-width:1320px;
+
+    margin:auto;
+
+    display:grid;
+
+    grid-template-columns:1fr 1.3fr 1fr;
+
+    gap:30px;
+
+}
+
+/* ==========================
+   COLLECTION CARD
+========================== */
+
+.collection-card{
+
+    position:relative;
+
+    overflow:hidden;
+
+    border-radius:26px;
+
+    min-height:560px;
+
+    cursor:pointer;
+
+    background:#eee;
+
+    box-shadow:0 20px 45px rgba(0,0,0,.08);
+
+}
+
+.collection-card.large{
+
+    min-height:650px;
+
+}
+
+.collection-card img{
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:cover;
+
+    transition:transform .8s ease;
+
+}
+
+/* ==========================
+   OVERLAY
+========================== */
+
+.collection-overlay{
+
+    position:absolute;
+
+    inset:0;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:flex-end;
+
+    padding:45px;
+
+    background:linear-gradient(
+
+        transparent,
+
+        rgba(0,0,0,.72)
+
+    );
+
+}
+
+.collection-overlay h3{
+
+    color:#fff;
+
+    font-size:2rem;
+
+    margin-bottom:18px;
+
+}
+
+.collection-overlay button{
+
+    width:170px;
+
+    height:52px;
+
+    border-radius:40px;
+
+    background:#fff;
+
+    color:#111;
+
+    font-weight:600;
+
+    transition:.35s;
+
+}
+
+.collection-overlay button:hover{
+
+    background:var(--color-accent);
+
+    color:#fff;
+
+}
+
+/* ==========================
+   HOVER EFFECT
+========================== */
+
+.collection-card:hover img{
+
+    transform:scale(1.08);
+
+}
+
+.collection-card:hover{
+
+    transform:translateY(-8px);
+
+    transition:.35s;
+
+}
+
+/* ==========================
+   BRAND STORY
+========================== */
+
+.brand-story-inner{
+
+    width:92%;
+
+    max-width:1320px;
+
+    margin:auto;
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    gap:80px;
+
+    align-items:center;
+
+}
+
+.story-text span{
+
+    color:var(--color-accent);
+
+    text-transform:uppercase;
+
+    letter-spacing:3px;
+
+    font-size:.8rem;
+
+}
+
+.story-text h2{
+
+    margin:18px 0 28px;
+
+    font-size:3.3rem;
+
+}
+
+.story-text p{
+
+    margin-bottom:22px;
+
+    font-size:1.05rem;
+
+    color:#555;
+
+    line-height:2;
+
+}
+
+.story-image{
+
+    overflow:hidden;
+
+    border-radius:28px;
+
+    box-shadow:0 20px 60px rgba(0,0,0,.12);
+
+}
+
+.story-image img{
+
+    height:720px;
+
+    object-fit:cover;
+
+    transition:transform .8s;
+
+}
+
+.story-image:hover img{
+
+    transform:scale(1.06);
+
+}
+
+/* ==========================
+   EDITORIAL STRIP
+========================== */
+
+.editorial-banner{
+
+    margin:120px auto;
+
+    width:92%;
+
+    max-width:1320px;
+
+    border-radius:32px;
+
+    background:#111;
+
+    color:#fff;
+
+    padding:120px 90px;
+
+    overflow:hidden;
+
+    position:relative;
+
+}
+
+.editorial-banner::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    background:
+
+    radial-gradient(
+
+        circle at top right,
+
+        rgba(255,255,255,.08),
+
+        transparent 45%
+
+    );
+
+}
+
+.editorial-content{
+
+    position:relative;
+
+    z-index:2;
+
+    max-width:700px;
+
+}
+
+.editorial-content span{
+
+    letter-spacing:4px;
+
+    text-transform:uppercase;
+
+    color:var(--color-accent);
+
+    font-size:.8rem;
+
+}
+
+.editorial-content h2{
+
+    color:#fff;
+
+    font-size:4rem;
+
+    margin:22px 0;
+
+}
+
+.editorial-content p{
+
+    color:rgba(255,255,255,.8);
+
+    line-height:2;
+
+    font-size:1.05rem;
+
+}
+
+/* ==========================
+   LUXURY HOVER
+========================== */
+
+.collection-card,
+.story-image,
+.editorial-banner{
+
+    transition:
+
+    transform .4s ease,
+
+    box-shadow .4s ease;
+
+}
+
+.collection-card:hover,
+
+.story-image:hover{
+
+    box-shadow:0 35px 80px rgba(0,0,0,.16);
+
+}
+
+/* ==========================
+   RESPONSIVE
+========================== */
+
+@media(max-width:1100px){
+
+.collection-grid{
+
+grid-template-columns:1fr;
+
+}
+
+.collection-card,
+
+.collection-card.large{
+
+min-height:520px;
+
+}
+
+.brand-story-inner{
+
+grid-template-columns:1fr;
+
+}
+
+.story-image img{
+
+height:560px;
+
+}
+
+.editorial-banner{
+
+padding:80px 45px;
+
+}
+
+.editorial-content h2{
+
+font-size:3rem;
+
+}
+
+}
+
+@media(max-width:768px){
+
+.collections-preview,
+
+.brand-story{
+
+padding:80px 0;
+
+}
+
+.collection-overlay{
+
+padding:30px;
+
+}
+
+.collection-overlay h3{
+
+font-size:1.5rem;
+
+}
+
+.story-text h2{
+
+font-size:2.5rem;
+
+}
+
+.editorial-banner{
+
+margin:80px auto;
+
+padding:60px 30px;
+
+border-radius:22px;
+
+}
+
+.editorial-content h2{
+
+font-size:2.2rem;
+
+}
+
+}
+
+/* ==========================================================
+   PART 3B
+   PRODUCT GRID & PRODUCT CARDS
+==========================================================*/
+
+/* ==========================
+   FEATURED PRODUCTS
+========================== */
+
+.featured-products{
+
+    padding:120px 0;
+
+    background:#ffffff;
+
+}
+
+.featured-products .section-heading{
+
+    margin-bottom:70px;
+
+}
+
+/* ==========================
+   PRODUCT GRID
+========================== */
+
+.product-grid{
+
+    width:92%;
+
+    max-width:1320px;
+
+    margin:0 auto;
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+
+    gap:35px;
+
+}
+
+/* ==========================
+   PRODUCT CARD
+========================== */
+
+.product-card{
+
+    position:relative;
+
+    background:#fff;
+
+    border-radius:24px;
+
+    overflow:hidden;
+
+    transition:all .45s ease;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.05);
+
+}
+
+.product-card:hover{
+
+    transform:translateY(-10px);
+
+    box-shadow:0 30px 70px rgba(0,0,0,.12);
+
+}
+
+/* ==========================
+   IMAGE
+========================== */
+
+.product-image{
+
+    position:relative;
+
+    overflow:hidden;
+
+    aspect-ratio:4/5;
+
+    background:#f5f5f5;
+
+}
+
+.product-image img{
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:cover;
+
+    transition:transform .6s ease;
+
+}
+
+.product-card:hover .product-image img{
+
+    transform:scale(1.08);
+
+}
+
+/* ==========================
+   SECOND IMAGE
+========================== */
+
+.product-image .secondary-image{
+
+    position:absolute;
+
+    inset:0;
+
+    opacity:0;
+
+    transition:opacity .45s ease;
+
+}
+
+.product-card:hover .secondary-image{
+
+    opacity:1;
+
+}
+
+/* ==========================
+   BADGES
+========================== */
+
+.product-badge{
+
+    position:absolute;
+
+    top:18px;
+
+    left:18px;
+
+    background:#111;
+
+    color:#fff;
+
+    padding:8px 14px;
+
+    border-radius:30px;
+
+    font-size:.72rem;
+
+    letter-spacing:1px;
+
+    text-transform:uppercase;
+
+    z-index:3;
+
+}
+
+.product-badge.sale{
+
+    background:#b89c63;
+
+}
+
+/* ==========================
+   QUICK ACTIONS
+========================== */
+
+.product-actions{
+
+    position:absolute;
+
+    right:18px;
+
+    top:18px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:12px;
+
+    opacity:0;
+
+    transform:translateX(20px);
+
+    transition:.35s;
+
+    z-index:5;
+
+}
+
+.product-card:hover .product-actions{
+
+    opacity:1;
+
+    transform:none;
+
+}
+
+.product-actions button{
+
+    width:46px;
+
+    height:46px;
+
+    border-radius:50%;
+
+    background:#fff;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.12);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    transition:.3s;
+
+}
+
+.product-actions button:hover{
+
+    background:#111;
+
+    color:#fff;
+
+}
+
+/* ==========================
+   CARD BODY
+========================== */
+
+.product-info{
+
+    padding:28px;
+
+}
+
+.product-category{
+
+    display:block;
+
+    color:#999;
+
+    font-size:.8rem;
+
+    text-transform:uppercase;
+
+    letter-spacing:2px;
+
+    margin-bottom:12px;
+
+}
+
+.product-title{
+
+    font-family:var(--font-heading);
+
+    font-size:1.45rem;
+
+    margin-bottom:12px;
+
+    color:#111;
+
+}
+
+.product-title a{
+
+    transition:.3s;
+
+}
+
+.product-title a:hover{
+
+    color:var(--color-accent);
+
+}
+
+/* ==========================
+   PRICE
+========================== */
+
+.product-price{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    margin-bottom:16px;
+
+}
+
+.current-price{
+
+    font-size:1.2rem;
+
+    font-weight:700;
+
+    color:#111;
+
+}
+
+.old-price{
+
+    color:#999;
+
+    text-decoration:line-through;
+
+}
+
+/* ==========================
+   RATING
+========================== */
+
+.product-rating{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    margin-bottom:22px;
+
+    font-size:.9rem;
+
+}
+
+.product-rating i{
+
+    color:#d7a542;
+
+}
+
+/* ==========================
+   ADD TO CART
+========================== */
+
+.product-card .primary-btn{
+
+    width:100%;
+
+    justify-content:center;
+
+    margin-top:8px;
+
+}
+
+/* ==========================
+   PRODUCT FOOTER
+========================== */
+
+.product-footer{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-top:20px;
+
+}
+
+.product-stock{
+
+    font-size:.85rem;
+
+    color:#777;
+
+}
+
+.product-stock.in-stock{
+
+    color:#27ae60;
+
+}
+
+.product-stock.low-stock{
+
+    color:#d35400;
+
+}
+
+.product-stock.out-stock{
+
+    color:#c0392b;
+
+}
+
+/* ==========================
+   WISHLIST
+========================== */
+
+.wishlist-btn{
+
+    width:42px;
+
+    height:42px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    border:1px solid #eee;
+
+    transition:.3s;
+
+}
+
+.wishlist-btn:hover{
+
+    background:#111;
+
+    color:#fff;
+
+}
+
+/* ==========================
+   PRODUCT HOVER GLOW
+========================== */
+
+.product-card::after{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    border-radius:24px;
+
+    pointer-events:none;
+
+    opacity:0;
+
+    transition:.35s;
+
+    box-shadow:0 0 60px rgba(184,156,99,.15);
+
+}
+
+.product-card:hover::after{
+
+    opacity:1;
+
+}
+
+/* ==========================
+   RESPONSIVE
+========================== */
+
+@media(max-width:992px){
+
+.product-grid{
+
+grid-template-columns:repeat(2,1fr);
+
+}
+
+}
+
+@media(max-width:768px){
+
+.product-grid{
+
+grid-template-columns:1fr;
+
+gap:28px;
+
+}
+
+.product-info{
+
+padding:22px;
+
+}
+
+.product-title{
+
+font-size:1.3rem;
+
+}
+
+.product-actions{
+
+opacity:1;
+
+transform:none;
+
+}
+
+}
