@@ -15835,3 +15835,7 @@ body.utility-modal-open {
         break-inside: avoid;
     }
 }
+
+#page-loader {
+    display: none !important;
+}
