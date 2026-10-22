@@ -15839,3 +15839,104 @@ body.utility-modal-open {
 #page-loader {
     display: none !important;
 }
+
+/* ==========================================================
+   L'ÉTERNEL — OVERLAY, DRAWER & PAGE VISIBILITY FIXES
+========================================================== */
+
+/* 1. Hide inactive SPA page sections by default */
+[data-page]:not(.active),
+.page-section:not(.active) {
+    display: none !important;
+}
+
+/* 2. Hide inactive account, admin, and auth sub-panels */
+[data-account-section]:not(.active),
+[data-admin-section]:not(.active),
+[data-auth-panel]:not(.active) {
+    display: none !important;
+}
+
+/* 3. Slide-out Drawers (Cart, Wishlist, Mobile Menu, Support) */
+.cart-drawer,
+.wishlist-drawer,
+.mobile-menu-drawer,
+.support-panel {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 100%;
+    max-width: 450px;
+    height: 100vh;
+    background: #ffffff;
+    color: #111111;
+    z-index: 1100;
+    transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+    visibility: hidden;
+    overflow-y: auto;
+}
+
+.cart-drawer.active,
+.cart-drawer.open,
+.wishlist-drawer.active,
+.wishlist-drawer.open,
+.mobile-menu-drawer.active,
+.mobile-menu-drawer.open,
+.support-panel.active,
+.support-panel.open {
+    right: 0;
+    visibility: visible;
+}
+
+/* 4. Modals & Account Overlays */
+.modal,
+.account-overlay,
+.auth-modal,
+.profile-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    padding: 20px;
+}
+
+.modal.active,
+.modal.open,
+.account-overlay.active,
+.account-overlay.open,
+.auth-modal.active,
+.auth-modal.open,
+.profile-modal.active,
+.profile-modal.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 5. Backdrop Overlays */
+.cart-overlay,
+.mobile-menu-overlay,
+.global-search-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1050;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease;
+}
+
+.cart-overlay.active,
+.mobile-menu-overlay.active,
+.global-search-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
