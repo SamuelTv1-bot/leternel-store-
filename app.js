@@ -186,6 +186,7 @@
                 query(".toast-container"),
 
             globalLoader:
+                getById("page-loader") ||
                 getById("global-loader") ||
                 query(".global-loading-overlay"),
 
