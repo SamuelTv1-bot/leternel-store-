@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="robots"
+        content="noindex, nofollow"
+    >
+
+    <title>
+        L'ÉTERNEL Admin · Customers
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/css/main.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="/css/admin.css"
+    >
+</head>
+
+<body class="admin-page">
+
+    <div class="admin-shell">
+
+        <!-- ==================================================
+             SIDEBAR
+        =================================================== -->
+
+        <aside
+            class="admin-sidebar"
+            aria-label="Admin navigation"
+        >
+            <div class="admin-sidebar-header">
+                <a
+                    href="/admin/"
+                    class="admin-brand"
+                    aria-label="L'ÉTERNEL Admin"
+                >
+                    <span class="admin-brand-mark">
+                        L'É
+                    </span>
+
+                    <span class="admin-brand-copy">
+                        <strong>
+                            L'ÉTERNEL
+                        </strong>
+
+                        <small>
+                            Administration
+                        </small>
+                    </span>
+                </a>
+            </div>
+
+            <nav
+                class="admin-navigation"
+                data-admin-nav
+                aria-label="Primary admin navigation"
+            >
+                <a
+                    href="/admin/"
+                    class="admin-nav-link"
+                    data-admin-route="dashboard"
+                >
+                    <span
+                        class="admin-nav-icon"
+                        aria-hidden="true"
+                    >
+                        ◇
+                    </span>
+
+                    <span>
+                        Dashboard
+                    </span>
+                </a>
+
+                <a
+                    href="/admin/products.html"
+                    class="admin-nav-link"
+                    data-admin-route="products"
+                >
+                    <span
+                        class="admin-nav-icon"
+                        aria-hidden="true"
+                    >
+                        □
+                    </span>
+
+                    <span>
+                        Products
+                    </span>
+                </a>
+
+                <a
+                    href="/admin/orders.html"
+                    class="admin-nav-link"
+                    data-admin-route="orders"
+                >
+                    <span
+                        class="admin-nav-icon"
+                        aria-hidden="true"
+                    >
+                        ◫
+                    </span>
+
+                    <span>
+                        Orders
+                    </span>
+                </a>
+
+                <a
+                    href="/admin/customers.html"
+                    class="admin-nav-link"
+                    data-admin-route="customers"
+                >
+                    <span
+                        class="admin-nav-icon"
+                        aria-hidden="true"
+                    >
+                        ○
+                    </span>
+
+                    <span>
+                        Customers
+                    </span>
+                </a>
+
+                <a
+                    href="/admin/inventory.html"
+                    class="admin-nav-link"
+                    data-admin-route="inventory"
+                >
+                    <span
+                        class="admin-nav-icon"
+                        aria-hidden="true"
+                    >
+                        ▦
+                    </span>
+
+                    <span>
+                        Inventory
+                    </span>
+                </a>
+
+                <a
+                    href="/admin/operations.html"
+                    class="admin-nav-link"
+                    data-admin-route="operations"
+                >
+                    <span
+                        class="admin-nav-icon"
+                        aria-hidden="true"
+                    >
+                        ⚙
+                    </span>
+
+                    <span>
+                        Operations
+                    </span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <a
+                    href="/"
+                    class="admin-store-link"
+                >
+                    <span>
+                        View Store
+                    </span>
+
+                    <span aria-hidden="true">
+                        ↗
+                    </span>
+                </a>
+
+                <button
+                    type="button"
+                    class="admin-signout-button"
+                    data-admin-signout
+                >
+                    Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- ==================================================
+             MAIN
+        =================================================== -->
+
+        <div class="admin-main">
+
+            <header class="admin-topbar">
+                <button
+                    type="button"
+                    class="admin-menu-button"
+                    data-admin-menu-toggle
+                    aria-label="Toggle admin navigation"
+                    aria-expanded="false"
+                >
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <div class="admin-topbar-context">
+                    <span class="admin-topbar-eyebrow">
+                        Clientele
+                    </span>
+
+                    <strong>
+                        Customers
+                    </strong>
+                </div>
+
+                <div class="admin-topbar-user">
+                    <div class="admin-user-copy">
+                        <strong
+                            data-admin-user-name
+                        >
+                            Administrator
+                        </strong>
+
+                        <span
+                            data-admin-user-email
+                        >
+                            —
+                        </span>
+                    </div>
+
+                    <div
+                        class="admin-avatar"
+                        data-admin-avatar
+                        aria-hidden="true"
+                    >
+                        A
+                    </div>
+                </div>
+            </header>
+
+            <!-- ==============================================
+                 CUSTOMERS CONTENT
+            =============================================== -->
+
+            <main
+                class="admin-content"
+                data-admin-content
+                data-admin-customers
+                data-active-admin-route="customers"
+            >
+                <section class="admin-dashboard-hero">
+                    <div>
+                        <p class="admin-eyebrow">
+                            Clientele
+                        </p>
+
+                        <h1>
+                            Customers
+                        </h1>
+
+                        <p class="admin-muted">
+                            Review customer profiles, order history,
+                            lifetime value, account status, preferences,
+                            addresses, and internal notes.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="admin-button"
+                        data-customers-refresh
+                    >
+                        Refresh Customers
+                    </button>
+                </section>
+
+                <div
+                    class="admin-status-message"
+                    data-customers-status
+                    data-status="info"
+                    aria-live="polite"
+                ></div>
+
+                <!-- ==========================================
+                     CUSTOMER METRICS
+                =========================================== -->
+
+                <section
+                    class="admin-dashboard-grid"
+                    aria-label="Customer metrics"
+                >
+                    <article class="admin-dashboard-stat">
+                        <div class="admin-dashboard-stat-heading">
+                            <span>
+                                Total Customers
+                            </span>
+                        </div>
+
+                        <strong
+                            class="admin-dashboard-stat-value"
+                            data-customers-total
+                        >
+                            —
+                        </strong>
+
+                        <small>
+                            Registered customer accounts
+                        </small>
+                    </article>
+
+                    <article class="admin-dashboard-stat">
+                        <div class="admin-dashboard-stat-heading">
+                            <span>
+                                Active
+                            </span>
+                        </div>
+
+                        <strong
+                            class="admin-dashboard-stat-value"
+                            data-customers-active
+                        >
+                            —
+                        </strong>
+
+                        <small>
+                            Enabled customer profiles
+                        </small>
+                    </article>
+
+                    <article class="admin-dashboard-stat">
+                        <div class="admin-dashboard-stat-heading">
+                            <span>
+                                New This Month
+                            </span>
+                        </div>
+
+                        <strong
+                            class="admin-dashboard-stat-value"
+                            data-customers-new
+                        >
+                            —
+                        </strong>
+
+                        <small>
+                            Newly registered customers
+                        </small>
+                    </article>
+
+                    <article class="admin-dashboard-stat">
+                        <div class="admin-dashboard-stat-heading">
+                            <span>
+                                Lifetime Value
+                            </span>
+                        </div>
+
+                        <strong
+                            class="admin-dashboard-stat-value"
+                            data-customers-lifetime-value
+                        >
+                            —
+                        </strong>
+
+                        <small>
+                            Combined customer spend
+                        </small>
+                    </article>
+                </section>
+
+                <!-- ==========================================
+                     FILTERS
+                =========================================== -->
+
+                <section class="admin-card">
+                    <div class="admin-products-toolbar">
+                        <label class="admin-search-field">
+                            <span class="sr-only">
+                                Search customers
+                            </span>
+
+                            <input
+                                type="search"
+                                placeholder="Search by name, email, phone or customer ID"
+                                autocomplete="off"
+                                data-customers-search
+                            >
+                        </label>
+
+                        <div class="admin-products-filters">
+                            <label class="admin-field">
+                                <span>
+                                    Account Status
+                                </span>
+
+                                <select data-customers-status-filter>
+                                    <option value="">
+                                        All statuses
+                                    </option>
+
+                                    <option value="active">
+                                        Active
+                                    </option>
+
+                                    <option value="disabled">
+                                        Disabled
+                                    </option>
+
+                                    <option value="blocked">
+                                        Blocked
+                                    </option>
+                                </select>
+                            </label>
+
+                            <label class="admin-field">
+                                <span>
+                                    Customer Type
+                                </span>
+
+                                <select data-customers-type-filter>
+                                    <option value="">
+                                        All customers
+                                    </option>
+
+                                    <option value="new">
+                                        New
+                                    </option>
+
+                                    <option value="returning">
+                                        Returning
+                                    </option>
+
+                                    <option value="vip">
+                                        VIP
+                                    </option>
+
+                                    <option value="guest-converted">
+                                        Guest Converted
+                                    </option>
+                                </select>
+                            </label>
+
+                            <label class="admin-field">
+                                <span>
+                                    Marketing
+                                </span>
+
+                                <select data-customers-marketing-filter>
+                                    <option value="">
+                                        All preferences
+                                    </option>
+
+                                    <option value="subscribed">
+                                        Subscribed
+                                    </option>
+
+                                    <option value="not-subscribed">
+                                        Not Subscribed
+                                    </option>
+
+                                    <option value="unsubscribed">
+                                        Unsubscribed
+                                    </option>
+                                </select>
+                            </label>
+
+                            <label class="admin-field">
+                                <span>
+                                    Sort
+                                </span>
+
+                                <select data-customers-sort>
+                                    <option value="createdAt-desc">
+                                        Newest first
+                                    </option>
+
+                                    <option value="createdAt-asc">
+                                        Oldest first
+                                    </option>
+
+                                    <option value="name-asc">
+                                        Name A–Z
+                                    </option>
+
+                                    <option value="name-desc">
+                                        Name Z–A
+                                    </option>
+
+                                    <option value="lifetimeValueMinor-desc">
+                                        Highest value
+                                    </option>
+
+                                    <option value="orderCount-desc">
+                                        Most orders
+                                    </option>
+
+                                    <option value="lastOrderAt-desc">
+                                        Recent purchase
+                                    </option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <div class="admin-form-grid">
+                            <label class="admin-field">
+                                <span>
+                                    Joined From
+                                </span>
+
+                                <input
+                                    type="date"
+                                    data-customers-date-from
+                                >
+                            </label>
+
+                            <label class="admin-field">
+                                <span>
+                                    Joined To
+                                </span>
+
+                                <input
+                                    type="date"
+                                    data-customers-date-to
+                                >
+                            </label>
+                        </div>
+
+                        <div class="admin-toolbar">
+                            <button
+                                type="button"
+                                class="admin-button admin-button-secondary"
+                                data-customers-clear-filters
+                            >
+                                Clear Filters
+                            </button>
+
+                            <button
+                                type="button"
+                                class="admin-button admin-button-secondary"
+                                data-customers-export
+                            >
+                                Export CSV
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     CUSTOMER TABLE
+                =========================================== -->
+
+                <section class="admin-card">
+                    <div class="admin-card-heading">
+                        <div>
+                            <p class="admin-card-kicker">
+                                Clientele
+                            </p>
+
+                            <h2>
+                                Customer List
+                            </h2>
+                        </div>
+
+                        <div class="admin-selection-summary">
+                            <span data-customers-visible-count>
+                                0
+                            </span>
+
+                            <span>
+                                visible
+                            </span>
+                        </div>
+                    </div>
+
+                    <div
+                        class="admin-table-wrap"
+                        data-customers-table
+                    >
+                        <table class="admin-operation-table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Customer
+                                    </th>
+
+                                    <th>
+                                        Status
+                                    </th>
+
+                                    <th>
+                                        Type
+                                    </th>
+
+                                    <th>
+                                        Orders
+                                    </th>
+
+                                    <th>
+                                        Lifetime Value
+                                    </th>
+
+                                    <th>
+                                        Last Order
+                                    </th>
+
+                                    <th>
+                                        Joined
+                                    </th>
+
+                                    <th>
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr>
+                                    <td
+                                        colspan="8"
+                                        class="admin-operation-empty"
+                                    >
+                                        Loading customers…
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="admin-pagination">
+                        <button
+                            type="button"
+                            class="admin-button admin-button-secondary"
+                            data-customers-previous
+                            disabled
+                        >
+                            Previous
+                        </button>
+
+                        <span data-customers-page-label>
+                            Page 1
+                        </span>
+
+                        <button
+                            type="button"
+                            class="admin-button admin-button-secondary"
+                            data-customers-next
+                            disabled
+                        >
+                            Next
+                        </button>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- ==================================================
+             CUSTOMER DETAIL DRAWER
+        =================================================== -->
+
+        <aside
+            class="admin-editor-drawer admin-customer-drawer"
+            data-customer-drawer
+            aria-hidden="true"
+            aria-labelledby="customer-drawer-title"
+        >
+            <div class="admin-editor-header">
+                <div>
+                    <p class="admin-card-kicker">
+                        Customer Profile
+                    </p>
+
+                    <h2 id="customer-drawer-title">
+                        <span data-customer-drawer-name>
+                            Customer
+                        </span>
+                    </h2>
+                </div>
+
+                <button
+                    type="button"
+                    class="admin-editor-close"
+                    data-customer-drawer-close
+                    aria-label="Close customer profile"
+                >
+                    ×
+                </button>
+            </div>
+
+            <div class="admin-order-detail-body">
+
+                <!-- ==========================================
+                     PROFILE SUMMARY
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <div class="admin-customer-profile">
+                        <div
+                            class="admin-customer-avatar"
+                            data-customer-avatar
+                            aria-hidden="true"
+                        >
+                            C
+                        </div>
+
+                        <div class="admin-customer-profile-copy">
+                            <strong data-customer-name>
+                                Customer
+                            </strong>
+
+                            <a
+                                href="#"
+                                data-customer-email
+                            >
+                                —
+                            </a>
+
+                            <a
+                                href="#"
+                                data-customer-phone
+                            >
+                                —
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="admin-order-summary-grid">
+                        <div>
+                            <span class="admin-label">
+                                Status
+                            </span>
+
+                            <strong
+                                data-customer-status-label
+                                data-status="active"
+                            >
+                                Active
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span class="admin-label">
+                                Customer Type
+                            </span>
+
+                            <strong data-customer-type-label>
+                                New
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span class="admin-label">
+                                Orders
+                            </span>
+
+                            <strong data-customer-order-count>
+                                0
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span class="admin-label">
+                                Lifetime Value
+                            </span>
+
+                            <strong data-customer-lifetime-value>
+                                —
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span class="admin-label">
+                                Joined
+                            </span>
+
+                            <strong data-customer-created-at>
+                                —
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span class="admin-label">
+                                Last Active
+                            </span>
+
+                            <strong data-customer-last-active-at>
+                                —
+                            </strong>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     ACCOUNT DETAILS
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <h3>
+                        Account Details
+                    </h3>
+
+                    <div class="admin-form-grid">
+                        <div>
+                            <span class="admin-label">
+                                Customer ID
+                            </span>
+
+                            <p data-customer-id>
+                                —
+                            </p>
+                        </div>
+
+                        <div>
+                            <span class="admin-label">
+                                Authentication UID
+                            </span>
+
+                            <p data-customer-auth-uid>
+                                —
+                            </p>
+                        </div>
+
+                        <div>
+                            <span class="admin-label">
+                                Email Verified
+                            </span>
+
+                            <p data-customer-email-verified>
+                                —
+                            </p>
+                        </div>
+
+                        <div>
+                            <span class="admin-label">
+                                Last Sign In
+                            </span>
+
+                            <p data-customer-last-sign-in>
+                                —
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="admin-form-grid">
+                        <label class="admin-field">
+                            <span>
+                                Account Status
+                            </span>
+
+                            <select data-customer-status>
+                                <option value="active">
+                                    Active
+                                </option>
+
+                                <option value="disabled">
+                                    Disabled
+                                </option>
+
+                                <option value="blocked">
+                                    Blocked
+                                </option>
+                            </select>
+                        </label>
+
+                        <label class="admin-field">
+                            <span>
+                                Customer Type
+                            </span>
+
+                            <select data-customer-type>
+                                <option value="new">
+                                    New
+                                </option>
+
+                                <option value="returning">
+                                    Returning
+                                </option>
+
+                                <option value="vip">
+                                    VIP
+                                </option>
+
+                                <option value="guest-converted">
+                                    Guest Converted
+                                </option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="admin-toolbar">
+                        <button
+                            type="button"
+                            class="admin-button"
+                            data-customer-save-status
+                        >
+                            Save Account
+                        </button>
+
+                        <button
+                            type="button"
+                            class="admin-button admin-button-secondary"
+                            data-customer-send-password-reset
+                        >
+                            Send Password Reset
+                        </button>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     MARKETING
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <h3>
+                        Marketing Preferences
+                    </h3>
+
+                    <label class="admin-checkbox-field">
+                        <input
+                            type="checkbox"
+                            data-customer-marketing-email
+                        >
+
+                        <span>
+                            Email marketing
+                        </span>
+                    </label>
+
+                    <label class="admin-checkbox-field">
+                        <input
+                            type="checkbox"
+                            data-customer-marketing-sms
+                        >
+
+                        <span>
+                            SMS marketing
+                        </span>
+                    </label>
+
+                    <label class="admin-checkbox-field">
+                        <input
+                            type="checkbox"
+                            data-customer-marketing-personalization
+                        >
+
+                        <span>
+                            Personalised recommendations
+                        </span>
+                    </label>
+
+                    <div class="admin-form-grid">
+                        <div>
+                            <span class="admin-label">
+                                Consent Updated
+                            </span>
+
+                            <p data-customer-marketing-updated-at>
+                                —
+                            </p>
+                        </div>
+
+                        <div>
+                            <span class="admin-label">
+                                Consent Source
+                            </span>
+
+                            <p data-customer-marketing-source>
+                                —
+                            </p>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="admin-button admin-button-secondary"
+                        data-customer-save-marketing
+                    >
+                        Save Preferences
+                    </button>
+                </section>
+
+                <!-- ==========================================
+                     ADDRESSES
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <h3>
+                        Default Shipping Address
+                    </h3>
+
+                    <address
+                        class="admin-order-address"
+                        data-customer-shipping-address
+                    >
+                        —
+                    </address>
+                </section>
+
+                <section class="admin-editor-section">
+                    <h3>
+                        Default Billing Address
+                    </h3>
+
+                    <address
+                        class="admin-order-address"
+                        data-customer-billing-address
+                    >
+                        —
+                    </address>
+                </section>
+
+                <section class="admin-editor-section">
+                    <h3>
+                        Saved Addresses
+                    </h3>
+
+                    <div
+                        class="admin-customer-addresses"
+                        data-customer-addresses
+                    >
+                        <div class="admin-dashboard-empty">
+                            No saved addresses.
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     ORDERS
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <div class="admin-card-heading">
+                        <div>
+                            <h3>
+                                Order History
+                            </h3>
+                        </div>
+
+                        <a
+                            href="/admin/orders.html"
+                            class="admin-inline-link"
+                            data-customer-view-orders
+                        >
+                            View all
+                        </a>
+                    </div>
+
+                    <div
+                        class="admin-customer-orders"
+                        data-customer-orders
+                    >
+                        <div class="admin-dashboard-empty">
+                            No orders loaded.
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     WISHLIST
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <h3>
+                        Wishlist
+                    </h3>
+
+                    <div
+                        class="admin-customer-wishlist"
+                        data-customer-wishlist
+                    >
+                        <div class="admin-dashboard-empty">
+                            No wishlist items.
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     NOTES
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <h3>
+                        Internal Notes
+                    </h3>
+
+                    <label class="admin-field">
+                        <span>
+                            Add Note
+                        </span>
+
+                        <textarea
+                            rows="4"
+                            data-customer-note-input
+                        ></textarea>
+                    </label>
+
+                    <button
+                        type="button"
+                        class="admin-button admin-button-secondary"
+                        data-customer-note-add
+                    >
+                        Add Note
+                    </button>
+
+                    <div
+                        class="admin-order-notes"
+                        data-customer-notes
+                    >
+                        <div class="admin-dashboard-empty">
+                            No notes.
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     TAGS
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <h3>
+                        Tags
+                    </h3>
+
+                    <label class="admin-field">
+                        <span>
+                            Customer Tags
+                        </span>
+
+                        <input
+                            type="text"
+                            placeholder="vip, private-client, editorial"
+                            data-customer-tags
+                        >
+                    </label>
+
+                    <button
+                        type="button"
+                        class="admin-button admin-button-secondary"
+                        data-customer-save-tags
+                    >
+                        Save Tags
+                    </button>
+                </section>
+
+                <!-- ==========================================
+                     DANGER ZONE
+                =========================================== -->
+
+                <section class="admin-editor-section">
+                    <h3>
+                        Customer Actions
+                    </h3>
+
+                    <div class="admin-toolbar">
+                        <button
+                            type="button"
+                            class="admin-button admin-button-secondary"
+                            data-customer-disable
+                        >
+                            Disable Account
+                        </button>
+
+                        <button
+                            type="button"
+                            class="admin-button admin-button-secondary"
+                            data-customer-anonymize
+                        >
+                            Anonymize Data
+                        </button>
+
+                        <button
+                            type="button"
+                            class="admin-button admin-button-danger"
+                            data-customer-delete
+                        >
+                            Delete Customer
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </aside>
+
+        <!-- ==================================================
+             CONFIRMATION MODAL
+        =================================================== -->
+
+        <div
+            class="admin-modal"
+            data-customer-confirm-modal
+            aria-hidden="true"
+            hidden
+        >
+            <div
+                class="admin-modal-backdrop"
+                data-customer-confirm-cancel
+            ></div>
+
+            <section
+                class="admin-modal-card"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="customer-confirm-title"
+            >
+                <p class="admin-card-kicker">
+                    Customer Action
+                </p>
+
+                <h2
+                    id="customer-confirm-title"
+                    data-customer-confirm-title
+                >
+                    Confirm Action
+                </h2>
+
+                <p
+                    class="admin-muted"
+                    data-customer-confirm-message
+                >
+                    Are you sure?
+                </p>
+
+                <div class="admin-modal-actions">
+                    <button
+                        type="button"
+                        class="admin-button admin-button-secondary"
+                        data-customer-confirm-cancel
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        class="admin-button admin-button-danger"
+                        data-customer-confirm-submit
+                    >
+                        Confirm
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- ==================================================
+             LOADING
+        =================================================== -->
+
+        <div
+            class="admin-loading-overlay"
+            data-customers-loading
+            aria-hidden="true"
+            hidden
+        >
+            <div class="admin-loading-card">
+                <div
+                    class="admin-spinner"
+                    aria-hidden="true"
+                ></div>
+
+                <p data-customers-loading-message>
+                    Loading customers…
+                </p>
+            </div>
+        </div>
+
+        <button
+            type="button"
+            class="admin-sidebar-backdrop"
+            data-admin-sidebar-backdrop
+            aria-label="Close navigation"
+            hidden
+        ></button>
+    </div>
+
+    <!-- =====================================================
+         FIREBASE V8
+    ====================================================== -->
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+
+    <!-- =====================================================
+         FIREBASE CONFIG
+    ====================================================== -->
+
+    <script src="/js/firebase-config.js"></script>
+
+    <!-- =====================================================
+         SERVICES
+    ====================================================== -->
+
+    <script src="/js/services/functions-service.js"></script>
+
+    <script src="/js/services/admin-operations-service.js"></script>
+
+    <!-- =====================================================
+         ADMIN
+    ====================================================== -->
+
+    <script src="/js/admin/admin-router.js"></script>
+
+    <script src="/js/admin/customers-controller.js"></script>
+
+    <!-- =====================================================
+         BOOTSTRAP
+    ====================================================== -->
+
+    <script>
+        (function () {
+            "use strict";
+
+            function setAdminIdentity(
+                user
+            ) {
+                const nameElement =
+                    document.querySelector(
+                        "[data-admin-user-name]"
+                    );
+
+                const emailElement =
+                    document.querySelector(
+                        "[data-admin-user-email]"
+                    );
+
+                const avatarElement =
+                    document.querySelector(
+                        "[data-admin-avatar]"
+                    );
+
+                const displayName =
+                    user &&
+                    user.displayName
+                        ? user.displayName
+                        : "Administrator";
+
+                const email =
+                    user &&
+                    user.email
+                        ? user.email
+                        : "—";
+
+                if (
+                    nameElement
+                ) {
+                    nameElement.textContent =
+                        displayName;
+                }
+
+                if (
+                    emailElement
+                ) {
+                    emailElement.textContent =
+                        email;
+                }
+
+                if (
+                    avatarElement
+                ) {
+                    avatarElement.textContent =
+                        displayName
+                            .trim()
+                            .charAt(
+                                0
+                            )
+                            .toUpperCase() ||
+                        "A";
+                }
+            }
+
+            function bindSidebar() {
+                const toggle =
+                    document.querySelector(
+                        "[data-admin-menu-toggle]"
+                    );
+
+                const sidebar =
+                    document.querySelector(
+                        ".admin-sidebar"
+                    );
+
+                const backdrop =
+                    document.querySelector(
+                        "[data-admin-sidebar-backdrop]"
+                    );
+
+                if (
+                    !toggle ||
+                    !sidebar
+                ) {
+                    return;
+                }
+
+                function setOpen(
+                    open
+                ) {
+                    sidebar.classList.toggle(
+                        "is-open",
+                        open
+                    );
+
+                    document
+                        .documentElement
+                        .classList
+                        .toggle(
+                            "admin-menu-open",
+                            open
+                        );
+
+                    toggle.setAttribute(
+                        "aria-expanded",
+                        open
+                            ? "true"
+                            : "false"
+                    );
+
+                    if (
+                        backdrop
+                    ) {
+                        backdrop.hidden =
+                            !open;
+                    }
+                }
+
+                toggle.addEventListener(
+                    "click",
+                    function () {
+                        setOpen(
+                            !sidebar
+                                .classList
+                                .contains(
+                                    "is-open"
+                                )
+                        );
+                    }
+                );
+
+                if (
+                    backdrop
+                ) {
+                    backdrop.addEventListener(
+                        "click",
+                        function () {
+                            setOpen(
+                                false
+                            );
+                        }
+                    );
+                }
+            }
+
+            function bindSignOut() {
+                const button =
+                    document.querySelector(
+                        "[data-admin-signout]"
+                    );
+
+                if (
+                    !button
+                ) {
+                    return;
+                }
+
+                button.addEventListener(
+                    "click",
+                    async function () {
+                        button.disabled =
+                            true;
+
+                        try {
+                            await window.firebase
+                                .auth()
+                                .signOut();
+
+                            window.location.href =
+                                "/";
+                        } catch (
+                            error
+                        ) {
+                            console.error(
+                                "Unable to sign out.",
+                                error
+                            );
+
+                            button.disabled =
+                                false;
+                        }
+                    }
+                );
+            }
+
+            function watchAuthentication() {
+                if (
+                    !window.firebase ||
+                    typeof window.firebase
+                        .auth !==
+                        "function"
+                ) {
+                    setAdminIdentity(
+                        null
+                    );
+
+                    return;
+                }
+
+                window.firebase
+                    .auth()
+                    .onAuthStateChanged(
+                        function (
+                            user
+                        ) {
+                            setAdminIdentity(
+                                user
+                            );
+                        }
+                    );
+            }
+
+            async function startCustomersAdmin() {
+                bindSidebar();
+
+                bindSignOut();
+
+                watchAuthentication();
+
+                if (
+                    window.LEternelAdminRouter
+                ) {
+                    await window
+                        .LEternelAdminRouter
+                        .getAdminRouter()
+                        .init();
+                }
+
+                if (
+                    !window.LEternelCustomersController
+                ) {
+                    throw new Error(
+                        "Customers controller is unavailable."
+                    );
+                }
+
+                const controller =
+                    window
+                        .LEternelCustomersController
+                        .getCustomersController();
+
+                await controller.init();
+
+                window.LEternelCustomersAdmin =
+                    controller;
+            }
+
+            if (
+                document.readyState ===
+                "loading"
+            ) {
+                document.addEventListener(
+                    "DOMContentLoaded",
+                    function () {
+                        startCustomersAdmin()
+                            .catch(
+                                function (
+                                    error
+                                ) {
+                                    console.error(
+                                        "Unable to initialize customers admin.",
+                                        error
+                                    );
+                                }
+                            );
+                    },
+                    {
+                        once:
+                            true
+                    }
+                );
+            } else {
+                startCustomersAdmin()
+                    .catch(
+                        function (
+                            error
+                        ) {
+                            console.error(
+                                "Unable to initialize customers admin.",
+                                error
+                            );
+                        }
+                    );
+            }
+        })();
+    </script>
+</body>
+</html>

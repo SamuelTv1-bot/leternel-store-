@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        L'ÉTERNEL Admin · Operations
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/css/main.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="/css/admin.css"
+    >
+</head>
+
+<body class="admin-page">
+
+    <main
+        class="admin-operations"
+        data-admin-operations
+    >
+        <header class="admin-operations-header">
+            <div>
+                <p class="admin-eyebrow">
+                    L'ÉTERNEL
+                </p>
+
+                <h1>
+                    Operations
+                </h1>
+
+                <p class="admin-muted">
+                    Monitor and manage backend operational services.
+                </p>
+            </div>
+
+            <button
+                type="button"
+                class="admin-button"
+                data-operations-refresh
+            >
+                Refresh
+            </button>
+        </header>
+
+        <div
+            class="admin-status-message"
+            data-operations-status
+            data-status="info"
+            aria-live="polite"
+        ></div>
+
+        <section class="admin-card">
+            <div class="admin-card-heading">
+                <div>
+                    <p class="admin-card-kicker">
+                        System
+                    </p>
+
+                    <h2>
+                        Operations Health
+                    </h2>
+                </div>
+            </div>
+
+            <div class="admin-health-grid">
+                <div>
+                    <span class="admin-label">
+                        Status
+                    </span>
+
+                    <strong
+                        data-operations-health
+                        data-status="unavailable"
+                    >
+                        Unavailable
+                    </strong>
+                </div>
+
+                <div>
+                    <span class="admin-label">
+                        Last checked
+                    </span>
+
+                    <span
+                        data-operations-health-timestamp
+                    >
+                        —
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <section class="admin-card">
+            <div class="admin-card-heading">
+                <div>
+                    <p class="admin-card-kicker">
+                        Automation
+                    </p>
+
+                    <h2>
+                        Maintenance
+                    </h2>
+                </div>
+            </div>
+
+            <div class="admin-actions-grid">
+                <button
+                    type="button"
+                    class="admin-button"
+                    data-operation-cleanup
+                >
+                    Run Cleanup
+                </button>
+
+                <button
+                    type="button"
+                    class="admin-button"
+                    data-operation-maintenance
+                >
+                    Run Maintenance
+                </button>
+            </div>
+        </section>
+
+        <section class="admin-card">
+            <div class="admin-card-heading">
+                <div>
+                    <p class="admin-card-kicker">
+                        Reliability
+                    </p>
+
+                    <h2>
+                        Dead Letters
+                    </h2>
+                </div>
+            </div>
+
+            <div
+                class="admin-table-wrap"
+                data-dead-letters-table
+            ></div>
+        </section>
+
+        <section class="admin-card">
+            <div class="admin-card-heading">
+                <div>
+                    <p class="admin-card-kicker">
+                        Finance
+                    </p>
+
+                    <h2>
+                        Reconciliation
+                    </h2>
+                </div>
+            </div>
+
+            <div class="admin-form-grid">
+                <label class="admin-field">
+                    <span>
+                        Source
+                    </span>
+
+                    <input
+                        type="text"
+                        placeholder="payments"
+                        data-reconciliation-source
+                    >
+                </label>
+
+                <label class="admin-field">
+                    <span>
+                        Currency
+                    </span>
+
+                    <input
+                        type="text"
+                        value="GBP"
+                        data-reconciliation-currency
+                    >
+                </label>
+            </div>
+
+            <div class="admin-form-grid">
+                <label class="admin-field admin-field-wide">
+                    <span>
+                        Internal records JSON
+                    </span>
+
+                    <textarea
+                        rows="10"
+                        data-reconciliation-internal
+                    >[]</textarea>
+                </label>
+
+                <label class="admin-field admin-field-wide">
+                    <span>
+                        External records JSON
+                    </span>
+
+                    <textarea
+                        rows="10"
+                        data-reconciliation-external
+                    >[]</textarea>
+                </label>
+            </div>
+
+            <div class="admin-toolbar">
+                <button
+                    type="button"
+                    class="admin-button"
+                    data-reconciliation-run
+                >
+                    Run Reconciliation
+                </button>
+            </div>
+
+            <label class="admin-field">
+                <span>
+                    Latest reconciliation result
+                </span>
+
+                <textarea
+                    rows="10"
+                    readonly
+                    data-reconciliation-output
+                ></textarea>
+            </label>
+
+            <div class="admin-subsection">
+                <h3>
+                    Runs
+                </h3>
+
+                <div
+                    class="admin-table-wrap"
+                    data-reconciliation-runs-table
+                ></div>
+            </div>
+
+            <div class="admin-subsection">
+                <h3>
+                    Discrepancies
+                </h3>
+
+                <div
+                    class="admin-table-wrap"
+                    data-reconciliation-items-table
+                ></div>
+            </div>
+        </section>
+
+        <section class="admin-card">
+            <div class="admin-card-heading">
+                <div>
+                    <p class="admin-card-kicker">
+                        Data Protection
+                    </p>
+
+                    <h2>
+                        Backups
+                    </h2>
+                </div>
+            </div>
+
+            <label class="admin-field">
+                <span>
+                    Collections
+                </span>
+
+                <textarea
+                    rows="4"
+                    placeholder="orders, products, users"
+                    data-backup-collections
+                ></textarea>
+
+                <small>
+                    Separate collection names with commas or new lines.
+                </small>
+            </label>
+
+            <div class="admin-toolbar">
+                <button
+                    type="button"
+                    class="admin-button"
+                    data-backup-export
+                >
+                    Export Backup
+                </button>
+            </div>
+
+            <div class="admin-form-grid">
+                <label class="admin-field admin-field-wide">
+                    <span>
+                        Backup input JSON
+                    </span>
+
+                    <textarea
+                        rows="14"
+                        placeholder="{ ... }"
+                        data-backup-input
+                    ></textarea>
+                </label>
+
+                <label class="admin-field admin-field-wide">
+                    <span>
+                        Backup output
+                    </span>
+
+                    <textarea
+                        rows="14"
+                        readonly
+                        data-backup-output
+                    ></textarea>
+                </label>
+            </div>
+
+            <div class="admin-toolbar">
+                <button
+                    type="button"
+                    class="admin-button admin-button-secondary"
+                    data-backup-inspect
+                >
+                    Inspect Backup
+                </button>
+
+                <button
+                    type="button"
+                    class="admin-button admin-button-danger"
+                    data-backup-restore
+                >
+                    Restore Backup
+                </button>
+            </div>
+
+            <div class="admin-subsection">
+                <h3>
+                    Backup Runs
+                </h3>
+
+                <div
+                    class="admin-table-wrap"
+                    data-backup-runs-table
+                ></div>
+            </div>
+        </section>
+
+        <section class="admin-card">
+            <div class="admin-card-heading">
+                <div>
+                    <p class="admin-card-kicker">
+                        Database
+                    </p>
+
+                    <h2>
+                        Migrations
+                    </h2>
+                </div>
+            </div>
+
+            <div class="admin-form-grid">
+                <label class="admin-field">
+                    <span>
+                        Direction
+                    </span>
+
+                    <select
+                        data-migration-direction
+                    >
+                        <option value="up">
+                            Up
+                        </option>
+
+                        <option value="down">
+                            Down
+                        </option>
+                    </select>
+                </label>
+
+                <label class="admin-field">
+                    <span>
+                        From version
+                    </span>
+
+                    <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="Optional"
+                        data-migration-from
+                    >
+                </label>
+
+                <label class="admin-field">
+                    <span>
+                        To version
+                    </span>
+
+                    <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="Optional"
+                        data-migration-to
+                    >
+                </label>
+            </div>
+
+            <div class="admin-toolbar">
+                <button
+                    type="button"
+                    class="admin-button admin-button-secondary"
+                    data-migration-plan
+                >
+                    Preview Plan
+                </button>
+
+                <button
+                    type="button"
+                    class="admin-button admin-button-danger"
+                    data-migration-run
+                >
+                    Run Migrations
+                </button>
+            </div>
+
+            <label class="admin-field">
+                <span>
+                    Migration output
+                </span>
+
+                <textarea
+                    rows="12"
+                    readonly
+                    data-migration-output
+                ></textarea>
+            </label>
+
+            <div class="admin-subsection">
+                <h3>
+                    Migration Runs
+                </h3>
+
+                <div
+                    class="admin-table-wrap"
+                    data-migration-runs-table
+                ></div>
+            </div>
+        </section>
+
+        <div
+            class="admin-loading-overlay"
+            data-operations-loading
+            aria-hidden="true"
+            hidden
+        >
+            <div class="admin-loading-card">
+                <div
+                    class="admin-spinner"
+                    aria-hidden="true"
+                ></div>
+
+                <p>
+                    Processing operation…
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Firebase v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+
+    <!-- Existing Firebase bootstrap/config should load before services. -->
+    <script src="/js/firebase-config.js"></script>
+
+    <script src="/js/services/functions-service.js"></script>
+    <script src="/js/services/admin-operations-service.js"></script>
+    <script src="/js/admin/operations-controller.js"></script>
+
+    <script>
+        (function () {
+            "use strict";
+
+            function startOperationsAdmin() {
+                if (
+                    !window.LEternelOperationsController
+                ) {
+                    console.error(
+                        "Operations controller is unavailable."
+                    );
+
+                    return;
+                }
+
+                const controller =
+                    window
+                        .LEternelOperationsController
+                        .getOperationsController();
+
+                controller
+                    .init()
+                    .catch(
+                        function (
+                            error
+                        ) {
+                            console.error(
+                                "Unable to initialize operations admin.",
+                                error
+                            );
+                        }
+                    );
+
+                window.LEternelOperationsAdmin =
+                    controller;
+            }
+
+            if (
+                document.readyState ===
+                "loading"
+            ) {
+                document.addEventListener(
+                    "DOMContentLoaded",
+                    startOperationsAdmin,
+                    {
+                        once:
+                            true
+                    }
+                );
+            } else {
+                startOperationsAdmin();
+            }
+        })();
+    </script>
+</body>
+</html>

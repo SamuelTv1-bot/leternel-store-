@@ -1,0 +1,486 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ======================================================
+       SHARED HELPERS
+    ====================================================== */
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() &&
+        request.auth.uid == userId;
+    }
+
+    function currentUserDocument() {
+      return get(
+        /databases/$(database)/documents/users/$(request.auth.uid)
+      );
+    }
+
+    function currentUserData() {
+      return currentUserDocument().data;
+    }
+
+    function hasAdminClaim() {
+      return isSignedIn() &&
+        (
+          request.auth.token.admin == true ||
+          request.auth.token.role == "admin" ||
+          request.auth.token.role == "superadmin"
+        );
+    }
+
+    function hasAdminProfile() {
+      return isSignedIn() &&
+        exists(
+          /databases/$(database)/documents/users/$(request.auth.uid)
+        ) &&
+        (
+          currentUserData().role == "admin" ||
+          currentUserData().role == "superadmin"
+        ) &&
+        currentUserData().status == "active";
+    }
+
+    function isAdmin() {
+      return hasAdminClaim() ||
+        hasAdminProfile();
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() &&
+        (
+          request.auth.token.role == "superadmin" ||
+          (
+            exists(
+              /databases/$(database)/documents/users/$(request.auth.uid)
+            ) &&
+            currentUserData().role == "superadmin" &&
+            currentUserData().status == "active"
+          )
+        );
+    }
+
+    function isActiveUser() {
+      return isSignedIn() &&
+        (
+          !exists(
+            /databases/$(database)/documents/users/$(request.auth.uid)
+          ) ||
+          currentUserData().status == "active"
+        );
+    }
+
+    function onlyChanges(fields) {
+      return request.resource.data
+        .diff(resource.data)
+        .affectedKeys()
+        .hasOnly(fields);
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function validString(value, minimum, maximum) {
+      return value is string &&
+        value.size() >= minimum &&
+        value.size() <= maximum;
+    }
+
+    function validOptionalString(value, maximum) {
+      return value == null ||
+        (
+          value is string &&
+          value.size() <= maximum
+        );
+    }
+
+    function validNonNegativeNumber(value) {
+      return value is number &&
+        value >= 0;
+    }
+
+    function validPositiveInteger(value) {
+      return value is int &&
+        value > 0;
+    }
+
+    function validRole(role) {
+      return role == "customer" ||
+        role == "admin" ||
+        role == "superadmin";
+    }
+
+    function validUserStatus(status) {
+      return status == "active" ||
+        status == "disabled" ||
+        status == "deleted";
+    }
+
+    function validOrderStatus(status) {
+      return status == "pending" ||
+        status == "confirmed" ||
+        status == "processing" ||
+        status == "shipped" ||
+        status == "delivered" ||
+        status == "cancelled" ||
+        status == "refunded";
+    }
+
+    function validPaymentStatus(status) {
+      return status == "pending" ||
+        status == "paid" ||
+        status == "successful" ||
+        status == "failed" ||
+        status == "declined" ||
+        status == "refunded" ||
+        status == "awaiting-payment";
+    }
+
+    function validProductStatus(data) {
+      return data.active is bool &&
+        data.published is bool &&
+        data.inStock is bool;
+    }
+
+    function validProductPrice(data) {
+      return validNonNegativeNumber(data.price) &&
+        (
+          !("compareAtPrice" in data) ||
+          validNonNegativeNumber(data.compareAtPrice)
+        );
+    }
+
+    function validProductInventory(data) {
+      return validNonNegativeNumber(data.inventory);
+    }
+
+    function validProductCore(data) {
+      return validString(data.name, 1, 200) &&
+        validString(data.slug, 1, 220) &&
+        validProductPrice(data) &&
+        validProductInventory(data) &&
+        validProductStatus(data);
+    }
+
+    function validCartItem(item) {
+      return item is map &&
+        validString(item.productId, 1, 200) &&
+        validString(item.name, 1, 300) &&
+        validNonNegativeNumber(item.price) &&
+        validPositiveInteger(item.quantity) &&
+        item.quantity <= 10 &&
+        validNonNegativeNumber(item.stock);
+    }
+
+    function validWishlistItem(item) {
+      return item is map &&
+        validString(item.productId, 1, 200) &&
+        validString(item.name, 1, 300) &&
+        validNonNegativeNumber(item.price);
+    }
+
+    function validOrderItem(item) {
+      return item is map &&
+        validString(item.productId, 1, 200) &&
+        validString(item.name, 1, 300) &&
+        validNonNegativeNumber(item.price) &&
+        validPositiveInteger(item.quantity) &&
+        validNonNegativeNumber(item.lineTotal);
+    }
+
+    function validAddress(address) {
+      return address is map &&
+        validString(address.addressLine1, 1, 300) &&
+        validString(address.city, 1, 120) &&
+        validString(address.state, 1, 120) &&
+        validString(address.country, 1, 120);
+    }
+
+    /* ======================================================
+       USERS
+    ====================================================== */
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) ||
+        isAdmin();
+
+      allow create: if isOwner(userId) &&
+        request.resource.data.uid == userId &&
+        request.resource.data.role == "customer" &&
+        request.resource.data.status == "active" &&
+        validString(request.resource.data.email, 3, 320);
+
+      allow update: if (
+          isOwner(userId) &&
+          onlyChanges([
+            "displayName",
+            "photoURL",
+            "phoneNumber",
+            "dateOfBirth",
+            "gender",
+            "country",
+            "preferredCurrency",
+            "preferences",
+            "addresses",
+            "email",
+            "emailVerified",
+            "lastLoginAt",
+            "lastOrderAt",
+            "passwordUpdatedAt",
+            "updatedAt"
+          ]) &&
+          request.resource.data.role == resource.data.role &&
+          request.resource.data.status == resource.data.status
+        ) ||
+        (
+          isAdmin() &&
+          !onlyChanges(["role"]) &&
+          request.resource.data.role == resource.data.role
+        ) ||
+        isSuperAdmin();
+
+      allow delete: if isSuperAdmin();
+
+      match /paymentMethods/{paymentMethodId} {
+        allow read: if isOwner(userId) ||
+          isAdmin();
+
+        allow create, update: if isOwner(userId) &&
+          validString(
+            request.resource.data.tokenReference,
+            1,
+            1000
+          ) &&
+          validString(
+            request.resource.data.last4,
+            4,
+            4
+          );
+
+        allow delete: if isOwner(userId) ||
+          isAdmin();
+      }
+    }
+
+    /* ======================================================
+       PRODUCTS
+    ====================================================== */
+
+    match /products/{productId} {
+      allow read: if (
+          resource.data.active == true &&
+          resource.data.published == true
+        ) ||
+        isAdmin();
+
+      allow create: if isAdmin() &&
+        validProductCore(
+          request.resource.data
+        );
+
+      allow update: if isAdmin() &&
+        validProductCore(
+          request.resource.data
+        );
+
+      allow delete: if isAdmin();
+
+      match /reviews/{reviewId} {
+        allow read: if true;
+
+        allow create: if isActiveUser() &&
+          request.resource.data.userId == request.auth.uid &&
+          validString(
+            request.resource.data.comment,
+            1,
+            2000
+          ) &&
+          request.resource.data.rating is int &&
+          request.resource.data.rating >= 1 &&
+          request.resource.data.rating <= 5;
+
+        allow update, delete: if isAdmin() ||
+          (
+            isSignedIn() &&
+            resource.data.userId == request.auth.uid
+          );
+      }
+    }
+
+    /* ======================================================
+       CATEGORIES
+    ====================================================== */
+
+    match /categories/{categoryId} {
+      allow read: if resource.data.active == true ||
+        isAdmin();
+
+      allow create, update, delete: if isAdmin();
+    }
+
+    /* ======================================================
+       CARTS
+    ====================================================== */
+
+    match /carts/{userId} {
+      allow read: if isOwner(userId) ||
+        isAdmin();
+
+      allow create, update: if isOwner(userId) &&
+        request.resource.data.userId == userId &&
+        request.resource.data.items is list &&
+        request.resource.data.items.size() <= 100 &&
+        request.resource.data.items.all(
+          item,
+          validCartItem(item)
+        ) &&
+        validNonNegativeNumber(
+          request.resource.data.subtotal
+        ) &&
+        request.resource.data.itemCount is int &&
+        request.resource.data.itemCount >= 0;
+
+      allow delete: if isOwner(userId) ||
+        isAdmin();
+    }
+
+    /* ======================================================
+       WISHLISTS
+    ====================================================== */
+
+    match /wishlists/{userId} {
+      allow read: if isOwner(userId) ||
+        isAdmin();
+
+      allow create, update: if isOwner(userId) &&
+        request.resource.data.userId == userId &&
+        request.resource.data.items is list &&
+        request.resource.data.items.size() <= 100 &&
+        request.resource.data.items.all(
+          item,
+          validWishlistItem(item)
+        ) &&
+        request.resource.data.itemCount is int &&
+        request.resource.data.itemCount >= 0 &&
+        request.resource.data.itemCount <= 100;
+
+      allow delete: if isOwner(userId) ||
+        isAdmin();
+    }
+
+    /* ======================================================
+       ORDERS
+    ====================================================== */
+
+    match /orders/{orderId} {
+      allow read: if isAdmin() ||
+        (
+          isSignedIn() &&
+          resource.data.userId == request.auth.uid
+        );
+
+      /*
+       * Direct client order creation is intentionally blocked.
+       * Orders should be created through a trusted backend or
+       * Cloud Function that validates payment and inventory.
+       */
+      allow create: if false;
+
+      allow update: if isAdmin() &&
+        validOrderStatus(
+          request.resource.data.status
+        ) &&
+        validPaymentStatus(
+          request.resource.data.paymentStatus
+        );
+
+      allow delete: if isSuperAdmin();
+    }
+
+    /* ======================================================
+       COUPONS
+    ====================================================== */
+
+    match /coupons/{couponId} {
+      allow read: if resource.data.active == true ||
+        isAdmin();
+
+      allow create, update, delete: if isAdmin();
+    }
+
+    /* ======================================================
+       NEWSLETTER
+    ====================================================== */
+
+    match /newsletterSubscribers/{subscriberId} {
+      allow create: if validString(
+          request.resource.data.email,
+          3,
+          320
+        );
+
+      allow read, update, delete: if isAdmin();
+    }
+
+    /* ======================================================
+       CONTACT MESSAGES
+    ====================================================== */
+
+    match /contactMessages/{messageId} {
+      allow create: if validString(
+          request.resource.data.name,
+          1,
+          200
+        ) &&
+        validString(
+          request.resource.data.email,
+          3,
+          320
+        ) &&
+        validString(
+          request.resource.data.message,
+          1,
+          5000
+        );
+
+      allow read, update, delete: if isAdmin();
+    }
+
+    /* ======================================================
+       STORE SETTINGS
+    ====================================================== */
+
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    /* ======================================================
+       ANALYTICS
+    ====================================================== */
+
+    match /analytics/{documentId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    /* ======================================================
+       DEFAULT DENY
+    ====================================================== */
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
